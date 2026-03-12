@@ -1,0 +1,346 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;600;700&family=DM+Mono:wght@400;500&display=swap');
+
+@layer base {
+  :root {
+    /* ── Dark Navy Design System ── */
+    --navy-950: #060d1f;
+    --navy-900: #0b1426;
+    --navy-850: #0f1d35;
+    --navy-800: #132240;
+    --navy-700: #1c3158;
+    --navy-600: #274273;
+    --navy-500: #335490;
+    --navy-400: #4a6eb3;
+
+    --accent:        #38bdf8;   /* sky-400 */
+    --accent-bright: #7dd3fc;   /* sky-300 */
+    --accent-dim:    #0ea5e9;   /* sky-500 */
+    --accent-glow:   rgba(56, 189, 248, 0.15);
+
+    --surface-1: #0f1d35;       /* cards / panels */
+    --surface-2: #132240;       /* inner cards */
+    --surface-3: #1c3158;       /* hover / selected */
+    --border:    rgba(56, 189, 248, 0.12);
+    --border-bright: rgba(56, 189, 248, 0.28);
+
+    --text-primary:   #e2eaf8;
+    --text-secondary: #8fa8cc;
+    --text-muted:     #4d6a96;
+
+    --ok:    #34d399;
+    --warn:  #fbbf24;
+    --danger:#f87171;
+    --ok-bg:    rgba(52, 211, 153, 0.12);
+    --warn-bg:  rgba(251, 191, 36, 0.12);
+    --danger-bg:rgba(248, 113, 113, 0.12);
+  }
+
+  html { font-family: 'Noto Sans JP', sans-serif; }
+
+  body {
+    background-color: var(--navy-950);
+    color: var(--text-primary);
+  }
+
+  /* スクロールバー */
+  ::-webkit-scrollbar { width: 4px; height: 4px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: var(--navy-600); border-radius: 2px; }
+  ::-webkit-scrollbar-thumb:hover { background: var(--navy-400); }
+
+  /* フォントモノ */
+  .font-mono { font-family: 'DM Mono', monospace; }
+}
+
+/* ── 共通コンポーネント ── */
+@layer components {
+
+  /* カード */
+  .card {
+    background: var(--surface-1);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+  }
+  .card-inner {
+    background: var(--surface-2);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+  }
+
+  /* テーブル */
+  .data-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.8125rem;
+  }
+  .data-table thead th {
+    padding: 10px 14px;
+    text-align: left;
+    font-size: 0.6875rem;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    background: var(--surface-2);
+    border-bottom: 1px solid var(--border);
+  }
+  .data-table tbody tr {
+    border-bottom: 1px solid var(--border);
+    transition: background 0.15s;
+  }
+  .data-table tbody tr:hover {
+    background: var(--surface-3);
+  }
+  .data-table tbody tr:last-child {
+    border-bottom: none;
+  }
+  .data-table td {
+    padding: 10px 14px;
+    color: var(--text-primary);
+  }
+
+  /* バッジ */
+  .badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 2px 8px;
+    border-radius: 999px;
+    font-size: 0.6875rem;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+  }
+  .badge-ok      { background: var(--ok-bg);     color: var(--ok);    }
+  .badge-warn    { background: var(--warn-bg);    color: var(--warn);  }
+  .badge-danger  { background: var(--danger-bg);  color: var(--danger);}
+  .badge-blue    { background: rgba(56,189,248,0.12); color: var(--accent); }
+  .badge-gray    { background: rgba(77,106,150,0.2);  color: var(--text-secondary); }
+
+  /* ボタン */
+  .btn-primary {
+    background: var(--accent-dim);
+    color: #fff;
+    padding: 8px 18px;
+    border-radius: 8px;
+    font-size: 0.8125rem;
+    font-weight: 600;
+    transition: all 0.15s;
+    border: none;
+    cursor: pointer;
+  }
+  .btn-primary:hover {
+    background: var(--accent);
+    box-shadow: 0 0 20px var(--accent-glow);
+  }
+  .btn-secondary {
+    background: transparent;
+    color: var(--text-secondary);
+    padding: 8px 18px;
+    border-radius: 8px;
+    font-size: 0.8125rem;
+    font-weight: 500;
+    border: 1px solid var(--border-bright);
+    transition: all 0.15s;
+    cursor: pointer;
+  }
+  .btn-secondary:hover {
+    background: var(--surface-3);
+    color: var(--text-primary);
+  }
+
+  /* ラベル */
+  .label {
+    display: block;
+    font-size: 0.8125rem;
+    font-weight: 600;
+    color: var(--accent);
+    margin-bottom: 6px;
+    letter-spacing: 0.02em;
+  }
+
+  /* フォームグループ */
+  .form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    margin-bottom: 20px;
+  }
+
+  /* インプット — 画像スタイル（大きめ角丸・アクセントボーダー） */
+  .input {
+    background: rgba(15, 29, 53, 0.6);
+    border: 1.5px solid rgba(56, 189, 248, 0.25);
+    border-radius: 999px;
+    padding: 13px 22px;
+    font-size: 0.9375rem;
+    color: var(--text-primary);
+    outline: none;
+    transition: border-color 0.2s, box-shadow 0.2s, background 0.2s;
+    width: 100%;
+    font-family: 'Noto Sans JP', sans-serif;
+  }
+  .input:focus {
+    border-color: var(--accent);
+    background: rgba(56, 189, 248, 0.05);
+    box-shadow: 0 0 0 3px var(--accent-glow);
+  }
+  .input::placeholder { color: var(--text-muted); }
+
+  /* テキストエリアだけ角丸を小さく */
+  textarea.input {
+    border-radius: 18px;
+    padding: 14px 22px;
+    resize: vertical;
+    min-height: 140px;
+  }
+
+  /* セレクトボックス */
+  select.input {
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%238fa8cc' stroke-width='2'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 20px center;
+    padding-right: 44px;
+  }
+  select.input option {
+    background: var(--navy-850);
+    color: var(--text-primary);
+    border-radius: 0;
+  }
+
+  /* フォームカード（入力フォーム全体を囲むカード） */
+  .form-card {
+    background: var(--surface-1);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 28px 32px;
+  }
+
+  /* フォームヘッダー（画像の緑タイトル部分） */
+  .form-card-header {
+    display: inline-block;
+    background: var(--accent-dim);
+    color: #fff;
+    font-size: 0.9375rem;
+    font-weight: 700;
+    padding: 10px 24px;
+    border-radius: 8px;
+    margin-bottom: 28px;
+    letter-spacing: 0.02em;
+  }
+
+  /* 送信ボタン（画像スタイル） */
+  .btn-submit {
+    display: block;
+    margin: 8px auto 0;
+    background: transparent;
+    color: var(--text-secondary);
+    padding: 13px 56px;
+    border-radius: 999px;
+    font-size: 0.9375rem;
+    font-weight: 600;
+    border: 1.5px solid rgba(56, 189, 248, 0.35);
+    cursor: pointer;
+    transition: all 0.2s;
+    font-family: 'Noto Sans JP', sans-serif;
+  }
+  .btn-submit:hover {
+    background: var(--accent-dim);
+    color: #fff;
+    border-color: var(--accent-dim);
+    box-shadow: 0 0 20px var(--accent-glow);
+  }
+  .btn-submit:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+
+  /* ページタイトル */
+  .page-title {
+    font-size: 1.375rem;
+    font-weight: 700;
+    color: var(--text-primary);
+    letter-spacing: -0.02em;
+  }
+
+  /* セクションヘッダー */
+  .section-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 16px;
+  }
+  .section-header h3 {
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: var(--text-primary);
+  }
+
+  /* アクセントライン */
+  .accent-line {
+    width: 3px;
+    height: 20px;
+    background: var(--accent);
+    border-radius: 2px;
+    box-shadow: 0 0 8px var(--accent-glow);
+  }
+
+  /* グロー効果 */
+  .glow-accent { box-shadow: 0 0 20px var(--accent-glow); }
+
+  /* タブ */
+  .tab-bar {
+    display: flex;
+    gap: 4px;
+    background: var(--surface-2);
+    padding: 4px;
+    border-radius: 10px;
+    border: 1px solid var(--border);
+  }
+  .tab-item {
+    padding: 6px 16px;
+    border-radius: 7px;
+    font-size: 0.8125rem;
+    font-weight: 500;
+    color: var(--text-secondary);
+    cursor: pointer;
+    transition: all 0.15s;
+    border: none;
+    background: none;
+  }
+  .tab-item:hover { color: var(--text-primary); }
+  .tab-item.active {
+    background: var(--accent-dim);
+    color: #fff;
+    box-shadow: 0 0 12px var(--accent-glow);
+  }
+}
+
+/* ── アニメーション ── */
+@keyframes fadeInUp {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.animate-in {
+  animation: fadeInUp 0.2s ease-out forwards;
+}
+
+@keyframes pulse-glow {
+  0%, 100% { box-shadow: 0 0 8px var(--accent-glow); }
+  50%       { box-shadow: 0 0 24px rgba(56,189,248,0.3); }
+}
+.pulse-glow { animation: pulse-glow 2s ease-in-out infinite; }
+
+/* ── 印刷 ── */
+@media print {
+  aside   { display: none !important; }
+  main    { padding: 0 !important; background: white !important; }
+  .no-print { display: none !important; }
+  body    { background: white !important; color: black !important; }
+  .card, .card-inner { background: white !important; border-color: #ddd !important; }
+}
