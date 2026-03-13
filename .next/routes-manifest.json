@@ -1,0 +1,134 @@
+{
+  "version": 3,
+  "pages404": true,
+  "caseSensitive": false,
+  "basePath": "/manufacturing-app-ver3",
+  "redirects": [
+    {
+      "source": "/manufacturing-app-ver3",
+      "destination": "/manufacturing-app-ver3/",
+      "basePath": false,
+      "internal": true,
+      "statusCode": 308,
+      "regex": "^/manufacturing-app-ver3$"
+    },
+    {
+      "source": "/:file((?!\\.well-known(?:/.*)?)(?:[^/]+/)*[^/]+\\.\\w+)/",
+      "destination": "/:file",
+      "internal": true,
+      "missing": [
+        {
+          "type": "header",
+          "key": "x-nextjs-data"
+        }
+      ],
+      "statusCode": 308,
+      "regex": "^(?:/((?!\\.well-known(?:/.*)?)(?:[^/]+/)*[^/]+\\.\\w+))/$"
+    },
+    {
+      "source": "/:notfile((?!\\.well-known(?:/.*)?)(?:[^/]+/)*[^/\\.]+)",
+      "destination": "/:notfile/",
+      "internal": true,
+      "statusCode": 308,
+      "regex": "^(?:/((?!\\.well-known(?:/.*)?)(?:[^/]+/)*[^/\\.]+))$"
+    }
+  ],
+  "headers": [],
+  "rewrites": {
+    "beforeFiles": [],
+    "afterFiles": [],
+    "fallback": []
+  },
+  "dynamicRoutes": [],
+  "staticRoutes": [
+    {
+      "page": "/",
+      "regex": "^/(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/(?:/)?$"
+    },
+    {
+      "page": "/_not-found",
+      "regex": "^/_not\\-found(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/_not\\-found(?:/)?$"
+    },
+    {
+      "page": "/arrivals",
+      "regex": "^/arrivals(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/arrivals(?:/)?$"
+    },
+    {
+      "page": "/inventory",
+      "regex": "^/inventory(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/inventory(?:/)?$"
+    },
+    {
+      "page": "/manual",
+      "regex": "^/manual(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/manual(?:/)?$"
+    },
+    {
+      "page": "/masters",
+      "regex": "^/masters(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/masters(?:/)?$"
+    },
+    {
+      "page": "/orders",
+      "regex": "^/orders(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/orders(?:/)?$"
+    },
+    {
+      "page": "/orders/new",
+      "regex": "^/orders/new(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/orders/new(?:/)?$"
+    },
+    {
+      "page": "/production",
+      "regex": "^/production(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/production(?:/)?$"
+    },
+    {
+      "page": "/production/calendar",
+      "regex": "^/production/calendar(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/production/calendar(?:/)?$"
+    },
+    {
+      "page": "/production/detail",
+      "regex": "^/production/detail(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/production/detail(?:/)?$"
+    },
+    {
+      "page": "/shipments",
+      "regex": "^/shipments(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/shipments(?:/)?$"
+    }
+  ],
+  "dataRoutes": [],
+  "rsc": {
+    "header": "rsc",
+    "varyHeader": "rsc, next-router-state-tree, next-router-prefetch, next-router-segment-prefetch",
+    "prefetchHeader": "next-router-prefetch",
+    "didPostponeHeader": "x-nextjs-postponed",
+    "contentTypeHeader": "text/x-component",
+    "suffix": ".rsc",
+    "prefetchSuffix": ".prefetch.rsc",
+    "prefetchSegmentHeader": "next-router-segment-prefetch",
+    "prefetchSegmentSuffix": ".segment.rsc",
+    "prefetchSegmentDirSuffix": ".segments"
+  },
+  "rewriteHeaders": {
+    "pathHeader": "x-nextjs-rewritten-path",
+    "queryHeader": "x-nextjs-rewritten-query"
+  }
+}

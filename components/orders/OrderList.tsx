@@ -13,7 +13,7 @@ const STATUS_STYLE: Record<string, string> = {
 
 export default function OrderList() {
   const [filterStatus, setFilterStatus] = useState<OrderStatus | 'all'>('all')
-  const { orders, loading } = useOrders(filterStatus)
+  const { orders, loading } = useOrders(filterStatus === 'all' ? undefined : filterStatus)
 
   const tabs = [
     { value: 'all',           label: 'すべて' },
@@ -54,7 +54,7 @@ export default function OrderList() {
                 <td style={{ fontWeight: 600 }}>{o.quantity} c/s</td>
                 <td><span className={STATUS_STYLE[o.status]}>{ORDER_STATUS_LABEL[o.status]}</span></td>
                 <td>
-                  <Link href={`/production/${o.id}`} style={{ fontSize: '0.75rem', color: 'var(--accent)', textDecoration: 'none' }}>
+                  <Link href={`/production/detail?orderId=${o.id}`} style={{ fontSize: '0.75rem', color: 'var(--accent)', textDecoration: 'none' }}>
                     製造計画 →
                   </Link>
                 </td>

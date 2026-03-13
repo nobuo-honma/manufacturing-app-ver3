@@ -1,0 +1,653 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>製造管理システム — DisasterBread</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@300;400;500;700&family=DM+Mono:wght@400;500&family=Bebas+Neue&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --navy-950: #04091a;
+      --navy-900: #070f24;
+      --navy-800: #0d1c3a;
+      --navy-700: #172d57;
+      --navy-600: #213f74;
+      --accent:   #38bdf8;
+      --accent-2: #0ea5e9;
+      --accent-dim: rgba(56,189,248,0.12);
+      --accent-glow: rgba(56,189,248,0.25);
+      --text-1: #e8f0fc;
+      --text-2: #8aa4cc;
+      --text-3: #4a6490;
+      --border: rgba(56,189,248,0.14);
+      --border-hi: rgba(56,189,248,0.32);
+      --ok:   #34d399;
+      --warn: #fbbf24;
+      --danger: #f87171;
+    }
+
+    html, body {
+      height: 100%;
+      background: var(--navy-950);
+      color: var(--text-1);
+      font-family: 'Noto Sans JP', sans-serif;
+      overflow-x: hidden;
+    }
+
+    /* ═══════════════════════════════════════
+       BACKGROUND — grid + radial glow
+    ═══════════════════════════════════════ */
+    .bg {
+      position: fixed; inset: 0; z-index: 0;
+      background:
+        radial-gradient(ellipse 80% 60% at 20% 10%, rgba(14,165,233,0.08) 0%, transparent 60%),
+        radial-gradient(ellipse 60% 50% at 80% 80%, rgba(56,189,248,0.05) 0%, transparent 50%),
+        var(--navy-950);
+    }
+    .bg-grid {
+      position: fixed; inset: 0; z-index: 0;
+      background-image:
+        linear-gradient(rgba(56,189,248,0.04) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(56,189,248,0.04) 1px, transparent 1px);
+      background-size: 48px 48px;
+      mask-image: radial-gradient(ellipse 100% 100% at 50% 50%, black 30%, transparent 80%);
+    }
+    .scan-line {
+      position: fixed; left: 0; right: 0; height: 2px; z-index: 1;
+      background: linear-gradient(90deg, transparent, rgba(56,189,248,0.4), transparent);
+      animation: scan 6s linear infinite;
+      pointer-events: none;
+    }
+    @keyframes scan {
+      0%   { top: -2px; opacity: 0; }
+      5%   { opacity: 1; }
+      95%  { opacity: 1; }
+      100% { top: 100vh; opacity: 0; }
+    }
+
+    /* ═══════════════════════════════════════
+       LAYOUT
+    ═══════════════════════════════════════ */
+    .wrapper {
+      position: relative; z-index: 10;
+      min-height: 100vh;
+      display: grid;
+      grid-template-columns: 1fr 440px;
+    }
+
+    /* ── 左パネル ── */
+    .left {
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      padding: 52px 64px;
+    }
+    .logo {
+      display: flex; align-items: center; gap: 14px;
+    }
+    .logo-icon {
+      width: 44px; height: 44px;
+      background: linear-gradient(135deg, var(--accent-2), var(--accent));
+      border-radius: 12px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 22px;
+      box-shadow: 0 0 28px var(--accent-glow), 0 0 60px rgba(56,189,248,0.08);
+    }
+    .logo-text {
+      display: flex; flex-direction: column;
+    }
+    .logo-title {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 1.5rem;
+      letter-spacing: 0.08em;
+      color: var(--text-1);
+      line-height: 1;
+    }
+    .logo-sub {
+      font-size: 0.6875rem;
+      color: var(--text-3);
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      margin-top: 2px;
+    }
+
+    /* ヒーローテキスト */
+    .hero {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      padding: 40px 0;
+    }
+    .hero-label {
+      display: inline-flex; align-items: center; gap: 8px;
+      font-size: 0.6875rem;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      color: var(--accent);
+      margin-bottom: 28px;
+    }
+    .hero-label::before {
+      content: '';
+      width: 20px; height: 1px;
+      background: var(--accent);
+      box-shadow: 0 0 8px var(--accent);
+    }
+    .hero-heading {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: clamp(3rem, 5vw, 5.5rem);
+      line-height: 0.92;
+      letter-spacing: 0.02em;
+      color: var(--text-1);
+      margin-bottom: 24px;
+    }
+    .hero-heading span {
+      display: block;
+      background: linear-gradient(135deg, var(--accent), #7dd3fc);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    .hero-desc {
+      font-size: 0.9375rem;
+      line-height: 1.8;
+      color: var(--text-2);
+      max-width: 420px;
+      margin-bottom: 48px;
+    }
+
+    /* ステータスインジケーター */
+    .status-row {
+      display: flex; gap: 28px; flex-wrap: wrap;
+    }
+    .status-item {
+      display: flex; align-items: center; gap: 8px;
+      font-size: 0.8125rem; color: var(--text-2);
+    }
+    .dot {
+      width: 7px; height: 7px; border-radius: 50%;
+      animation: pulse-dot 2s ease-in-out infinite;
+    }
+    .dot-ok   { background: var(--ok);     box-shadow: 0 0 8px var(--ok); }
+    .dot-warn { background: var(--warn);   box-shadow: 0 0 8px var(--warn); animation-delay: 0.4s; }
+    .dot-info { background: var(--accent); box-shadow: 0 0 8px var(--accent); animation-delay: 0.8s; }
+    @keyframes pulse-dot {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50%       { opacity: 0.6; transform: scale(0.85); }
+    }
+
+    /* 機能カード */
+    .feature-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 12px;
+      margin-top: 48px;
+    }
+    .feature-card {
+      background: rgba(13,28,58,0.6);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 16px;
+      backdrop-filter: blur(4px);
+      transition: border-color 0.2s, transform 0.2s;
+      cursor: default;
+    }
+    .feature-card:hover {
+      border-color: var(--border-hi);
+      transform: translateY(-2px);
+    }
+    .feature-icon { font-size: 1.25rem; margin-bottom: 8px; }
+    .feature-name {
+      font-size: 0.8125rem; font-weight: 600; color: var(--text-1); margin-bottom: 4px;
+    }
+    .feature-desc { font-size: 0.6875rem; color: var(--text-3); line-height: 1.5; }
+
+    /* フッター */
+    .left-footer {
+      font-size: 0.6875rem; color: var(--text-3);
+      letter-spacing: 0.06em;
+    }
+
+    /* ═══════════════════════════════════════
+       右パネル — ログインフォーム
+    ═══════════════════════════════════════ */
+    .right {
+      position: relative;
+      border-left: 1px solid var(--border);
+      background: rgba(7,15,36,0.85);
+      backdrop-filter: blur(20px);
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      padding: 52px 48px;
+    }
+    /* 右パネル上部の装飾ライン */
+    .right::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 2px;
+      background: linear-gradient(90deg, transparent, var(--accent), transparent);
+      opacity: 0.6;
+    }
+
+    .form-header { margin-bottom: 36px; }
+    .form-title {
+      font-size: 1.5rem; font-weight: 700; color: var(--text-1);
+      letter-spacing: -0.02em;
+      margin-bottom: 6px;
+    }
+    .form-subtitle { font-size: 0.875rem; color: var(--text-2); }
+
+    .form-group { margin-bottom: 18px; }
+    .form-label {
+      display: block;
+      font-size: 0.75rem;
+      font-weight: 500;
+      color: var(--text-2);
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      margin-bottom: 7px;
+    }
+    .form-input {
+      width: 100%;
+      background: rgba(23,45,87,0.6);
+      border: 1px solid var(--border-hi);
+      border-radius: 9px;
+      padding: 12px 16px;
+      font-size: 0.9375rem;
+      color: var(--text-1);
+      font-family: 'Noto Sans JP', sans-serif;
+      outline: none;
+      transition: border-color 0.18s, box-shadow 0.18s, background 0.18s;
+    }
+    .form-input:focus {
+      border-color: var(--accent);
+      background: rgba(14,165,233,0.06);
+      box-shadow: 0 0 0 3px rgba(56,189,248,0.14);
+    }
+    .form-input::placeholder { color: var(--text-3); }
+
+    /* パスワード入力 */
+    .input-wrap { position: relative; }
+    .input-wrap .form-input { padding-right: 44px; }
+    .eye-btn {
+      position: absolute; right: 14px; top: 50%; transform: translateY(-50%);
+      background: none; border: none; cursor: pointer;
+      color: var(--text-3); font-size: 1rem; line-height: 1;
+      transition: color 0.15s;
+    }
+    .eye-btn:hover { color: var(--accent); }
+
+    /* ログインボタン */
+    .login-btn {
+      width: 100%;
+      padding: 14px;
+      background: linear-gradient(135deg, var(--accent-2), var(--accent));
+      color: #fff;
+      font-size: 0.9375rem;
+      font-weight: 700;
+      font-family: 'Noto Sans JP', sans-serif;
+      letter-spacing: 0.04em;
+      border: none;
+      border-radius: 9px;
+      cursor: pointer;
+      position: relative;
+      overflow: hidden;
+      transition: transform 0.15s, box-shadow 0.15s;
+      margin-top: 8px;
+    }
+    .login-btn::before {
+      content: '';
+      position: absolute; inset: 0;
+      background: linear-gradient(135deg, rgba(255,255,255,0.12), transparent);
+      opacity: 0;
+      transition: opacity 0.15s;
+    }
+    .login-btn:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 8px 32px rgba(56,189,248,0.35);
+    }
+    .login-btn:hover::before { opacity: 1; }
+    .login-btn:active { transform: translateY(0); }
+
+    /* ローディング状態 */
+    .login-btn.loading {
+      pointer-events: none;
+      background: rgba(14,165,233,0.4);
+    }
+    .login-btn.loading::after {
+      content: '';
+      position: absolute; right: 18px; top: 50%; transform: translateY(-50%);
+      width: 16px; height: 16px;
+      border: 2px solid rgba(255,255,255,0.3);
+      border-top-color: #fff;
+      border-radius: 50%;
+      animation: spin 0.7s linear infinite;
+    }
+    @keyframes spin { to { transform: translateY(-50%) rotate(360deg); } }
+
+    /* エラーメッセージ */
+    .error-msg {
+      display: none;
+      background: rgba(248,113,113,0.1);
+      border: 1px solid rgba(248,113,113,0.3);
+      border-radius: 8px;
+      padding: 10px 14px;
+      font-size: 0.8125rem;
+      color: var(--danger);
+      margin-bottom: 16px;
+      animation: shake 0.3s ease;
+    }
+    .error-msg.show { display: block; }
+    @keyframes shake {
+      0%,100% { transform: translateX(0); }
+      25%      { transform: translateX(-6px); }
+      75%      { transform: translateX(6px); }
+    }
+
+    /* 区切り */
+    .divider {
+      display: flex; align-items: center; gap: 14px;
+      margin: 28px 0;
+      font-size: 0.6875rem; color: var(--text-3); letter-spacing: 0.08em;
+    }
+    .divider::before, .divider::after {
+      content: ''; flex: 1; height: 1px;
+      background: var(--border);
+    }
+
+    /* システム情報 */
+    .sys-info {
+      background: rgba(13,28,58,0.7);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 16px;
+    }
+    .sys-row {
+      display: flex; justify-content: space-between; align-items: center;
+      padding: 6px 0;
+      border-bottom: 1px solid rgba(56,189,248,0.07);
+      font-size: 0.75rem;
+    }
+    .sys-row:last-child { border-bottom: none; }
+    .sys-key { color: var(--text-3); font-family: 'DM Mono'; }
+    .sys-val { color: var(--accent); font-family: 'DM Mono'; font-size: 0.6875rem; }
+    .sys-val.ok { color: var(--ok); }
+
+    /* フッターリンク */
+    .form-footer {
+      margin-top: 28px;
+      font-size: 0.75rem;
+      color: var(--text-3);
+      text-align: center;
+      line-height: 1.8;
+    }
+
+    /* ═══════════════════════════════════════
+       アニメーション — ページロード
+    ═══════════════════════════════════════ */
+    .fade-up {
+      opacity: 0;
+      transform: translateY(16px);
+      animation: fadeUp 0.5s ease forwards;
+    }
+    @keyframes fadeUp {
+      to { opacity: 1; transform: translateY(0); }
+    }
+    .fade-up:nth-child(1) { animation-delay: 0.05s; }
+    .fade-up:nth-child(2) { animation-delay: 0.12s; }
+    .fade-up:nth-child(3) { animation-delay: 0.20s; }
+    .fade-up:nth-child(4) { animation-delay: 0.28s; }
+    .fade-up:nth-child(5) { animation-delay: 0.36s; }
+    .fade-up:nth-child(6) { animation-delay: 0.44s; }
+
+    .right > * { opacity: 0; animation: fadeUp 0.45s ease forwards; }
+    .right > *:nth-child(1) { animation-delay: 0.3s; }
+    .right > *:nth-child(2) { animation-delay: 0.4s; }
+    .right > *:nth-child(3) { animation-delay: 0.5s; }
+
+    /* ═══════════════════════════════════════
+       レスポンシブ
+    ═══════════════════════════════════════ */
+    @media (max-width: 900px) {
+      .wrapper { grid-template-columns: 1fr; }
+      .left { display: none; }
+      .right {
+        border-left: none;
+        min-height: 100vh;
+        padding: 40px 28px;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- 背景 -->
+  <div class="bg"></div>
+  <div class="bg-grid"></div>
+  <div class="scan-line"></div>
+
+  <div class="wrapper">
+
+    <!-- ══ 左パネル ══ -->
+    <div class="left">
+      <!-- ロゴ -->
+      <div class="logo fade-up">
+        <div class="logo-icon">🍞</div>
+        <div class="logo-text">
+          <span class="logo-title">製造管理システム</span>
+          <span class="logo-sub">DisasterBread Production v1.0</span>
+        </div>
+      </div>
+
+      <!-- ヒーロー -->
+      <div class="hero">
+        <div class="hero-label fade-up">Manufacturing Operations Platform</div>
+        <h1 class="hero-heading fade-up">
+          BREAD<span>CONTROL</span>HQ
+        </h1>
+        <p class="hero-desc fade-up">
+          受注から製造・在庫・出荷まで。<br>
+          非常食パンの製造オペレーションを、<br>
+          一つのシステムで完全管理。
+        </p>
+
+        <!-- ステータス -->
+        <div class="status-row fade-up">
+          <div class="status-item"><div class="dot dot-ok"></div>データベース接続</div>
+          <div class="status-item"><div class="dot dot-ok"></div>在庫システム正常</div>
+          <div class="status-item"><div class="dot dot-info"></div>本日 3件の製造予定</div>
+        </div>
+
+        <!-- 機能カード -->
+        <div class="feature-grid fade-up">
+          <div class="feature-card">
+            <div class="feature-icon">📋</div>
+            <div class="feature-name">受注管理</div>
+            <div class="feature-desc">出荷先451件・ステータス追跡</div>
+          </div>
+          <div class="feature-card">
+            <div class="feature-icon">🏭</div>
+            <div class="feature-name">製造管理</div>
+            <div class="feature-desc">Lot自動生成・製造予定表</div>
+          </div>
+          <div class="feature-card">
+            <div class="feature-icon">📦</div>
+            <div class="feature-name">在庫管理</div>
+            <div class="feature-desc">原材料28品目・資材42品目</div>
+          </div>
+          <div class="feature-card">
+            <div class="feature-icon">🚛</div>
+            <div class="feature-name">入荷管理</div>
+            <div class="feature-desc">カレンダー表示・在庫自動更新</div>
+          </div>
+          <div class="feature-card">
+            <div class="feature-icon">🚢</div>
+            <div class="feature-name">出荷管理</div>
+            <div class="feature-desc">Lot単位・c/s＋p端数対応</div>
+          </div>
+          <div class="feature-card">
+            <div class="feature-icon">📊</div>
+            <div class="feature-name">BOMシミュレーション</div>
+            <div class="feature-desc">受注前の在庫充足確認</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="left-footer fade-up">
+        © 2026 DisasterBread Co., Ltd. — Internal System
+      </div>
+    </div>
+
+    <!-- ══ 右パネル（ログイン）══ -->
+    <div class="right">
+
+      <div class="form-header">
+        <h2 class="form-title">ログイン</h2>
+        <p class="form-subtitle">認証情報を入力してシステムにアクセスしてください</p>
+      </div>
+
+      <form id="loginForm" onsubmit="handleLogin(event)">
+        <div id="errorMsg" class="error-msg">
+          メールアドレスまたはパスワードが正しくありません
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="email">メールアドレス</label>
+          <input
+            class="form-input" type="email" id="email"
+            placeholder="user@example.com" autocomplete="email" required>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="password">パスワード</label>
+          <div class="input-wrap">
+            <input
+              class="form-input" type="password" id="password"
+              placeholder="••••••••••" autocomplete="current-password" required>
+            <button type="button" class="eye-btn" onclick="togglePw()" title="パスワードを表示">👁</button>
+          </div>
+        </div>
+
+        <button type="submit" class="login-btn" id="loginBtn">
+          ログイン
+        </button>
+      </form>
+
+      <div class="divider">システム情報</div>
+
+      <div class="sys-info">
+        <div class="sys-row">
+          <span class="sys-key">version</span>
+          <span class="sys-val">1.0.0-production</span>
+        </div>
+        <div class="sys-row">
+          <span class="sys-key">database</span>
+          <span class="sys-val ok">● connected</span>
+        </div>
+        <div class="sys-row">
+          <span class="sys-key">products</span>
+          <span class="sys-val">24 items registered</span>
+        </div>
+        <div class="sys-row">
+          <span class="sys-key">customers</span>
+          <span class="sys-val">451 destinations</span>
+        </div>
+        <div class="sys-row">
+          <span class="sys-key">last_updated</span>
+          <span class="sys-val" id="lastUpdated">—</span>
+        </div>
+      </div>
+
+      <p class="form-footer">
+        ログインに問題がある場合は管理者にお問い合わせください<br>
+        <span style="color: #2a4a7a;">DisasterBread Co., Ltd. Internal System</span>
+      </p>
+
+    </div>
+  </div>
+
+  <script>
+    // 最終更新日時
+    document.getElementById('lastUpdated').textContent =
+      new Date().toLocaleDateString('ja-JP', { year: 'numeric', month: '2-digit', day: '2-digit' })
+        .replace(/\//g, '-');
+
+    // パスワード表示切替
+    function togglePw() {
+      const pw  = document.getElementById('password');
+      const btn = document.querySelector('.eye-btn');
+      if (pw.type === 'password') {
+        pw.type  = 'password' === pw.type ? 'text' : 'password';
+        pw.type  = 'text';
+        btn.textContent = '🙈';
+      } else {
+        pw.type  = 'password';
+        btn.textContent = '👁';
+      }
+    }
+
+    // ログイン処理（Supabase Auth連携箇所）
+    async function handleLogin(e) {
+      e.preventDefault();
+      const btn   = document.getElementById('loginBtn');
+      const error = document.getElementById('errorMsg');
+
+      btn.classList.add('loading');
+      btn.textContent = 'ログイン中...';
+      error.classList.remove('show');
+
+      const email    = document.getElementById('email').value;
+      const password = document.getElementById('password').value;
+
+      // ─── Supabase Auth 連携 ───────────────────────────────
+      // 実際の実装では下記コードに差し替えてください:
+      //
+      // const { createClient } = await import('https://esm.sh/@supabase/supabase-js@2')
+      // const supabase = createClient(
+      //   'https://YOUR_PROJECT.supabase.co',
+      //   'YOUR_ANON_KEY'
+      // )
+      // const { data, error: authError } = await supabase.auth.signInWithPassword({ email, password })
+      // if (authError) {
+      //   showError(); return;
+      // }
+      // window.location.href = '/dashboard';   // Next.jsアプリのルート
+      //
+      // ──────────────────────────────────────────────────────
+
+      // デモ: 2秒後にダッシュボードへ遷移（実装時に削除）
+      await new Promise(r => setTimeout(r, 1800));
+
+      // デモ用: 任意のメール+パスワードで成功
+      if (email && password.length >= 6) {
+        btn.textContent = '✓ 認証成功';
+        btn.style.background = 'linear-gradient(135deg, #059669, #34d399)';
+        await new Promise(r => setTimeout(r, 600));
+        // window.location.href = '/'; // Next.jsアプリへリダイレクト
+        alert('ログイン成功！\n実装時は Next.js アプリ（localhost:3000）へリダイレクトします');
+        btn.classList.remove('loading');
+        btn.textContent = 'ログイン';
+        btn.style.background = '';
+      } else {
+        showError();
+      }
+    }
+
+    function showError() {
+      const btn   = document.getElementById('loginBtn');
+      const error = document.getElementById('errorMsg');
+      btn.classList.remove('loading');
+      btn.textContent = 'ログイン';
+      error.classList.add('show');
+      // シェイクアニメーション再発火
+      error.style.animation = 'none';
+      requestAnimationFrame(() => { error.style.animation = ''; });
+    }
+  </script>
+</body>
+</html>

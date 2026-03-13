@@ -2,24 +2,27 @@
 import { useEffect, useState } from 'react'
 import { supabase } from '@/lib/supabase'
 import { Printer, ChevronLeft, ChevronRight } from 'lucide-react'
+import { Arrival } from '@/lib/types'
 
 const DAY_NAMES = ['日','月','火','水','木','金','土']
 const MONTH_NAMES = ['1月','2月','3月','4月','5月','6月','7月','8月','9月','10月','11月','12月']
 
-export default function ArrivalCalendar() {
+interface ArrivalCalendarProps {
+  arrivals: Arrival[]
+}
+
+export default function ArrivalCalendar({ arrivals }: ArrivalCalendarProps) {
   const [events, setEvents] = useState<any[]>([])
   const [year, setYear]   = useState(new Date().getFullYear())
   const [month, setMonth] = useState(new Date().getMonth())
 
   useEffect(() => {
-    supabase.from('arrivals').select('*, items(*)').then(({ data }) => {
-      setEvents((data ?? []).map(a => ({
-        title: `${a.items?.name} ${a.quantity}${a.items?.unit ?? ''}`,
-        date:  a.expected_date.slice(0, 10),
-        arrived: a.status === 'arrived',
-      })))
-    })
-  }, [])
+    setEvents((arrivals ?? []).map(a => ({
+      title: `${a.items?.name} ${a.quantity}${a.items?.unit ?? ''}`,
+      date:  a.expected_date.slice(0, 10),
+      arrived: a.status === 'arrived',
+    })))
+  }, [arrivals])
 
   const prev = () => month === 0 ? (setYear(y => y-1), setMonth(11)) : setMonth(m => m-1)
   const next = () => month === 11 ? (setYear(y => y+1), setMonth(0))  : setMonth(m => m+1)
@@ -78,7 +81,7 @@ export default function ArrivalCalendar() {
                     </p>
                     {ev.map((e,i) => (
                       <div key={i} style={{
-                        fontSize:'0.6rem', padding:'2px 5px', borderRadius:'4px', marginBottom:'2px', truncate:'ellipsis',
+                        fontSize:'0.6rem', padding:'2px 5px', borderRadius:'4px', marginBottom:'2px',
                         background: e.arrived?'rgba(52,211,153,0.15)':'rgba(56,189,248,0.12)',
                         color: e.arrived?'var(--ok)':'var(--accent)',
                         border: `1px solid ${e.arrived?'rgba(52,211,153,0.3)':'rgba(56,189,248,0.25)'}`,

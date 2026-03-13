@@ -1,0 +1,14 @@
+{
+  "/_not-found/page": "/_not-found",
+  "/manual/page": "/manual",
+  "/arrivals/page": "/arrivals",
+  "/masters/page": "/masters",
+  "/inventory/page": "/inventory",
+  "/orders/page": "/orders",
+  "/production/calendar/page": "/production/calendar",
+  "/page": "/",
+  "/orders/new/page": "/orders/new",
+  "/production/detail/page": "/production/detail",
+  "/production/page": "/production",
+  "/shipments/page": "/shipments"
+}
