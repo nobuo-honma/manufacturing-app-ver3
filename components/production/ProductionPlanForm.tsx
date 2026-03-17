@@ -79,7 +79,7 @@ export default function ProductionPlanForm({ order, existingCs = 0, comboSeqStar
 
       {/* サマリバー */}
       <div style={{
-        display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '12px'
+        display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(120px, 1fr))', gap: '12px'
       }}>
         {[
           { label: '受注数', val: `${order.quantity} c/s`, color: 'var(--text-primary)' },
@@ -126,15 +126,15 @@ export default function ProductionPlanForm({ order, existingCs = 0, comboSeqStar
             )}
           </div>
 
-          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '14px', width: '100%' }}>
-            <div className="form-group" style={{ marginBottom: 0, flex: '1 1 120px', minWidth: 0 }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: '14px', width: '100%' }}>
+            <div className="form-group" style={{ marginBottom: 0, minWidth: 0 }}>
               <label className="label" style={{ display: 'block', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
                 製造予定日
               </label>
               <input type="date" className="input" style={{ width: '100%', boxSizing: 'border-box' }}
                 value={day.date} onChange={e => update(idx, { date: e.target.value })} />
             </div>
-            <div className="form-group" style={{ marginBottom: 0, flex: '1 1 120px', minWidth: 0 }}>
+            <div className="form-group" style={{ marginBottom: 0, minWidth: 0 }}>
               <label className="label" style={{ display: 'block', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
                 製造量（kg）
               </label>

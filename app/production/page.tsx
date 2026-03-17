@@ -32,8 +32,13 @@ export default function ProductionPage() {
         </Link>
       </div>
 
-      {/* 2カラムレイアウト */}
-      <div style={{ display: 'grid', gridTemplateColumns: '340px 1fr', gap: '20px', alignItems: 'start' }}>
+      {/* 2カラムレイアウト - モバイル対応：画面が狭いときは縦に並ぶ */}
+      <div style={{
+        display: 'grid',
+        gridTemplateColumns: 'repeat(auto-fit, minmax(340px, 1fr))',
+        gap: '20px',
+        alignItems: 'start'
+      }}>
 
         {/* ── 左：受注カード一覧 ── */}
         <div className="card" style={{ overflow: 'hidden' }}>

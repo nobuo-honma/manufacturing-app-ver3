@@ -213,7 +213,7 @@ export default function ProductionCalendar() {
         return (
           <div style={{ position:'fixed', inset:0, zIndex:100, background:'rgba(0,0,0,0.6)', backdropFilter:'blur(4px)', display:'flex', alignItems:'center', justifyContent:'center' }}
             onClick={() => { setSelectedEvent(null); setIsEditing(false) }}>
-            <div className="card" style={{ width:'400px', padding:'24px' }} onClick={e => e.stopPropagation()}>
+          <div className="card" style={{ width:'95%', maxWidth:'450px', padding:'24px', maxHeight:'90vh', overflowY:'auto' }} onClick={e => e.stopPropagation()}>
               <div style={{ display:'flex', justifyContent:'space-between', alignItems:'flex-start', marginBottom:'16px' }}>
                 <div>
                   <h3 style={{ fontSize:'1.125rem', fontWeight:700, color:'var(--text-1)' }}>
