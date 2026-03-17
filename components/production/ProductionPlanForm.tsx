@@ -126,15 +126,19 @@ export default function ProductionPlanForm({ order, existingCs = 0, comboSeqStar
             )}
           </div>
 
-          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '14px' }}>
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '14px', width: '100%' }}>
             <div className="form-group" style={{ marginBottom: 0, flex: '1 1 120px', minWidth: 0 }}>
-              <label className="label">製造予定日</label>
-              <input type="date" className="input"
+              <label className="label" style={{ display: 'block', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                製造予定日
+              </label>
+              <input type="date" className="input" style={{ width: '100%', boxSizing: 'border-box' }}
                 value={day.date} onChange={e => update(idx, { date: e.target.value })} />
             </div>
             <div className="form-group" style={{ marginBottom: 0, flex: '1 1 120px', minWidth: 0 }}>
-              <label className="label">製造量（kg）</label>
-              <input type="number" min="0" step="0.5" className="input"
+              <label className="label" style={{ display: 'block', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                製造量（kg）
+              </label>
+              <input type="number" min="0" step="0.5" className="input" style={{ width: '100%', boxSizing: 'border-box' }}
                 value={day.kg || ''}
                 onChange={e => update(idx, { kg: Number(e.target.value) })} />
             </div>
@@ -143,11 +147,13 @@ export default function ProductionPlanForm({ order, existingCs = 0, comboSeqStar
           {/* 自動計算結果 */}
           {day.kg > 0 && day.date && (
             <div style={{
-              display: 'grid', gridTemplateColumns: 'repeat(5,1fr)', gap: '8px',
-              marginTop: '12px', padding: '12px 14px',
+              display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(70px, 1fr))', gap: '8px',
+              marginTop: '12px', padding: '12px 8px',
               background: 'rgba(56,189,248,0.05)',
               border: '1px solid rgba(56,189,248,0.15)',
               borderRadius: '10px',
+              width: '100%',
+              boxSizing: 'border-box'
             }}>
               {[
                 { label: '個数', val: `${day.units}` },
@@ -156,11 +162,12 @@ export default function ProductionPlanForm({ order, existingCs = 0, comboSeqStar
                 { label: '賞味期限', val: day.expiry },
                 { label: 'Lot番号', val: day.lot_code, mono: true },
               ].map(({ label, val, mono }) => (
-                <div key={label} style={{ textAlign: 'center' }}>
-                  <p style={{ fontSize: '0.625rem', color: 'var(--text-muted)', marginBottom: '3px' }}>{label}</p>
+                <div key={label} style={{ textAlign: 'center', minWidth: 0 }}>
+                  <p style={{ fontSize: '0.625rem', color: 'var(--text-muted)', marginBottom: '3px', whiteSpace: 'nowrap' }}>{label}</p>
                   <p style={{
                     fontSize: '0.75rem', fontWeight: 700, color: 'var(--accent)',
-                    fontFamily: mono ? 'DM Mono, monospace' : undefined
+                    fontFamily: mono ? 'DM Mono, monospace' : undefined,
+                    wordBreak: 'break-all'
                   }}>{val}</p>
                 </div>
               ))}
@@ -169,7 +176,7 @@ export default function ProductionPlanForm({ order, existingCs = 0, comboSeqStar
 
           <div className="form-group" style={{ marginTop: '14px', marginBottom: 0 }}>
             <label className="label">備考</label>
-            <input type="text" placeholder="例: 50kg×4回" className="input"
+            <input type="text" placeholder="例: 50kg×4回" className="input" style={{ width: '100%', boxSizing: 'border-box' }}
               value={day.notes} onChange={e => update(idx, { notes: e.target.value })} />
           </div>
         </div>
