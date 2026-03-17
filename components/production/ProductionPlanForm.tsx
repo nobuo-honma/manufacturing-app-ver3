@@ -127,12 +127,12 @@ export default function ProductionPlanForm({ order, existingCs = 0, comboSeqStar
           </div>
 
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: '14px' }}>
-            <div className="form-group" style={{ marginBottom: 0, flex: '1 1 150px', minWidth: 0 }}>
+            <div className="form-group" style={{ marginBottom: 0, flex: '1 1 120px', minWidth: 0 }}>
               <label className="label">製造予定日</label>
               <input type="date" className="input"
                 value={day.date} onChange={e => update(idx, { date: e.target.value })} />
             </div>
-            <div className="form-group" style={{ marginBottom: 0, flex: '1 1 150px', minWidth: 0 }}>
+            <div className="form-group" style={{ marginBottom: 0, flex: '1 1 120px', minWidth: 0 }}>
               <label className="label">製造量（kg）</label>
               <input type="number" min="0" step="0.5" className="input"
                 value={day.kg || ''}
