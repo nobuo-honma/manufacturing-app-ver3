@@ -87,13 +87,13 @@ export function getStockStatus(stock: number, safety: number): '充足' | '注�
 
 // ===== ステータスラベル・カラー =====
 export const ORDER_STATUS_LABEL: Record<string, string> = {
-  ordered:      '受注済',
+  received:     '受注済',
   in_production:'製造中',
   shipped:      '出荷済',
   cancelled:    'キャンセル',
 }
 export const ORDER_STATUS_COLOR: Record<string, string> = {
-  ordered:       'badge-blue',
+  received:      'badge-blue',
   in_production: 'badge-warn',
   shipped:       'badge-ok',
   cancelled:     'badge-gray',

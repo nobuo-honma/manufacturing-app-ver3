@@ -5,7 +5,7 @@ import Link from 'next/link'
 import { ChevronRight } from 'lucide-react'
 
 const STATUS_BADGE: Record<string, string> = {
-  ordered:       'badge-blue',
+  received:       'badge-blue',
   in_production: 'badge-warn',
   shipped:       'badge-ok',
 }

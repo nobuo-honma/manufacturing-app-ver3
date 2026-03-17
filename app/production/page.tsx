@@ -9,7 +9,7 @@ import Link from 'next/link'
 import { Calendar, ChevronRight, Package } from 'lucide-react'
 
 const STATUS_STYLE: Record<string, { dot: string; badge: string }> = {
-  ordered:      { dot: 'var(--accent)',  badge: 'badge-blue'   },
+  received:      { dot: 'var(--accent)',  badge: 'badge-blue'   },
   in_production:{ dot: 'var(--warn)',   badge: 'badge-warn'   },
   shipped:      { dot: 'var(--ok)',     badge: 'badge-ok'     },
 }
@@ -68,7 +68,7 @@ export default function ProductionPage() {
           ) : (
             <div style={{ maxHeight: 'calc(100vh - 220px)', overflowY: 'auto' }}>
               {active.map(order => {
-                const st = STATUS_STYLE[order.status] ?? STATUS_STYLE.ordered
+                const st = STATUS_STYLE[order.status] ?? STATUS_STYLE.received
                 const isSelected = selected?.id === order.id
                 return (
                   <button key={order.id} onClick={() => setSelected(order)}

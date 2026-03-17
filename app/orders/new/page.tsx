@@ -58,13 +58,16 @@ export default function NewOrderPage() {
       product_id:        form.product_id,
       quantity:          Number(form.quantity),
       notes:             form.notes || null,
-      status:            'ordered',
+      status:            'received',
     })
     setSaving(false)
     if (!error) {
       setSubmitted(true)
       setForm({ desired_ship_date:'', customer_id:'', product_id:'', quantity:'', notes:'' })
       setSearch('')
+    } else {
+      console.error('Failed to create order:', error)
+      alert(`受注登録に失敗しました: ${error.message}`)
     }
   }
 
