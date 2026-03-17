@@ -11,7 +11,7 @@ interface DayPlan {
   date: string; kg: number; units: number; cs: number
   piece: number; lot_code: string; expiry: string; notes: string
 }
-const emptyDay = (): DayPlan => ({ date:'', kg:0, units:0, cs:0, piece:0, lot_code:'', expiry:'', notes:'' })
+const emptyDay = (): DayPlan => ({ date: '', kg: 0, units: 0, cs: 0, piece: 0, lot_code: '', expiry: '', notes: '' })
 
 interface Props {
   order: Order
@@ -20,10 +20,10 @@ interface Props {
 }
 
 export default function ProductionPlanForm({ order, existingCs = 0, comboSeqStart = 1 }: Props) {
-  const [product, setProduct]   = useState<Product | null>(null)
+  const [product, setProduct] = useState<Product | null>(null)
   const [dayPlans, setDayPlans] = useState<DayPlan[]>([emptyDay()])
-  const [saving, setSaving]     = useState(false)
-  const [saved, setSaved]       = useState(false)
+  const [saving, setSaving] = useState(false)
+  const [saved, setSaved] = useState(false)
 
   useEffect(() => {
     supabase.from('products').select('*').eq('id', order.product_id).single()
@@ -40,7 +40,7 @@ export default function ProductionPlanForm({ order, existingCs = 0, comboSeqStar
       if (d.kg > 0 && d.date && product) {
         const { units, cs, piece } = calcProductionCounts(d.kg, product.unit_per_kg, product.unit_per_cs)
         const dt = new Date(d.date)
-        const expiry   = calcExpiryDate(dt).toISOString().slice(0, 10)
+        const expiry = calcExpiryDate(dt).toISOString().slice(0, 10)
         const lot_code = generateLotCode({ date: dt, productId: order.product_id, seqInDay: idx, comboSeq: comboSeqStart + idx })
         next[idx] = { ...d, ...field, units, cs, piece, expiry, lot_code }
       }
@@ -48,7 +48,7 @@ export default function ProductionPlanForm({ order, existingCs = 0, comboSeqStar
     })
   }
 
-  const totalCs  = dayPlans.reduce((s, d) => s + d.cs, 0)
+  const totalCs = dayPlans.reduce((s, d) => s + d.cs, 0)
   const remainCs = order.quantity - existingCs - totalCs
 
   const handleSubmit = async () => {
@@ -56,17 +56,17 @@ export default function ProductionPlanForm({ order, existingCs = 0, comboSeqStar
     for (const day of dayPlans) {
       if (!day.date || day.kg <= 0) continue
       await supabase.from('production_plans').insert({
-        id:              `PLN-${crypto.randomUUID().slice(0, 8)}`,
-        order_id:        order.id,
-        product_id:      order.product_id,
+        id: `PLN-${crypto.randomUUID().slice(0, 8)}`,
+        order_id: order.id,
+        product_id: order.product_id,
         production_date: day.date,
-        production_kg:   day.kg,
-        planned_units:   day.units,
-        planned_cs:      day.cs,
-        lot_code:        day.lot_code,
-        expiry_date:     day.expiry || null,
-        status:          'planned',
-        notes:           day.notes || null,
+        production_kg: day.kg,
+        planned_units: day.units,
+        planned_cs: day.cs,
+        lot_code: day.lot_code,
+        expiry_date: day.expiry || null,
+        status: 'planned',
+        notes: day.notes || null,
       })
     }
     await supabase.from('orders').update({ status: 'in_production' }).eq('id', order.id)
@@ -82,10 +82,12 @@ export default function ProductionPlanForm({ order, existingCs = 0, comboSeqStar
         display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '12px'
       }}>
         {[
-          { label: '受注数',        val: `${order.quantity} c/s`,   color: 'var(--text-primary)' },
-          { label: '今回登録合計',  val: `${totalCs} c/s`,          color: 'var(--accent)' },
-          { label: '残り必要量',    val: `${remainCs} c/s`,
-            color: remainCs < 0 ? 'var(--danger)' : remainCs === 0 ? 'var(--ok)' : 'var(--text-primary)' },
+          { label: '受注数', val: `${order.quantity} c/s`, color: 'var(--text-primary)' },
+          { label: '今回登録合計', val: `${totalCs} c/s`, color: 'var(--accent)' },
+          {
+            label: '残り必要量', val: `${remainCs} c/s`,
+            color: remainCs < 0 ? 'var(--danger)' : remainCs === 0 ? 'var(--ok)' : 'var(--text-primary)'
+          },
         ].map(({ label, val, color }) => (
           <div key={label} className="card-inner" style={{ padding: '12px 16px' }}>
             <p style={{ fontSize: '0.6875rem', color: 'var(--text-muted)', marginBottom: '4px' }}>{label}</p>
@@ -125,12 +127,12 @@ export default function ProductionPlanForm({ order, existingCs = 0, comboSeqStar
           </div>
 
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: '14px' }}>
-            <div className="form-group" style={{ marginBottom: 0, flex: '1 1 180px', minWidth: 0 }}>
+            <div className="form-group" style={{ marginBottom: 0, flex: '1 1 150px', minWidth: 0 }}>
               <label className="label">製造予定日</label>
               <input type="date" className="input"
                 value={day.date} onChange={e => update(idx, { date: e.target.value })} />
             </div>
-            <div className="form-group" style={{ marginBottom: 0, flex: '1 1 180px', minWidth: 0 }}>
+            <div className="form-group" style={{ marginBottom: 0, flex: '1 1 150px', minWidth: 0 }}>
               <label className="label">製造量（kg）</label>
               <input type="number" min="0" step="0.5" className="input"
                 value={day.kg || ''}
@@ -148,11 +150,11 @@ export default function ProductionPlanForm({ order, existingCs = 0, comboSeqStar
               borderRadius: '10px',
             }}>
               {[
-                { label: '個数',     val: `${day.units}` },
-                { label: 'c/s',      val: `${day.cs}` },
-                { label: '端数(p)',  val: `${day.piece}` },
+                { label: '個数', val: `${day.units}` },
+                { label: 'c/s', val: `${day.cs}` },
+                { label: '端数(p)', val: `${day.piece}` },
                 { label: '賞味期限', val: day.expiry },
-                { label: 'Lot番号',  val: day.lot_code, mono: true },
+                { label: 'Lot番号', val: day.lot_code, mono: true },
               ].map(({ label, val, mono }) => (
                 <div key={label} style={{ textAlign: 'center' }}>
                   <p style={{ fontSize: '0.625rem', color: 'var(--text-muted)', marginBottom: '3px' }}>{label}</p>
