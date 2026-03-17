@@ -5,11 +5,12 @@ import { Arrival } from '@/lib/types'
 import { generateArrivalId, ARRIVAL_STATUS_LABEL } from '@/lib/utils'
 import ArrivalCalendar from '@/components/arrivals/ArrivalCalendar'
 import ArrivalForm     from '@/components/arrivals/ArrivalForm'
-import { Plus } from 'lucide-react'
+import { Plus, Pencil, Trash2 } from 'lucide-react'
 
 export default function ArrivalsPage() {
   const [arrivals, setArrivals] = useState<Arrival[]>([])
   const [showForm, setShowForm] = useState(false)
+  const [editingArrival, setEditingArrival] = useState<Arrival | null>(null)
   const [viewMode, setViewMode] = useState<'list' | 'calendar'>('list')
 
   const fetchArrivals = async () => {
@@ -17,11 +18,27 @@ export default function ArrivalsPage() {
     setArrivals(data || [])
   }
   useEffect(() => { fetchArrivals() }, [])
-
   const handleArrive = async (id: string, itemId: string, qty: number) => {
     await supabase.from('arrivals').update({ status: 'arrived' }).eq('id', id)
     const { data: stock } = await supabase.from('item_stocks').select('quantity').eq('item_id', itemId).single()
     await supabase.from('item_stocks').upsert({ item_id: itemId, quantity: (stock?.quantity ?? 0) + qty, updated_at: new Date().toISOString() })
+    fetchArrivals()
+  }
+
+  const handleDelete = async (a: Arrival) => {
+    if (!confirm(`入荷予定 ${a.id} を削除しますか？`)) return
+    
+    if (a.status === 'arrived') {
+      const { data: stock } = await supabase.from('item_stocks').select('quantity').eq('item_id', a.item_id).single()
+      const newQty = (stock?.quantity ?? 0) - a.quantity
+      await supabase.from('item_stocks').upsert({ item_id: a.item_id, quantity: newQty, updated_at: new Date().toISOString() })
+    }
+    
+    const { error } = await supabase.from('arrivals').delete().eq('id', a.id)
+    if (error) {
+      alert(error.message)
+      return
+    }
     fetchArrivals()
   }
 
@@ -45,7 +62,7 @@ export default function ArrivalsPage() {
       )}
 
       {viewMode === 'calendar' ? (
-        <ArrivalCalendar arrivals={arrivals} />
+        <ArrivalCalendar arrivals={arrivals} onRefresh={fetchArrivals} />
       ) : (
         <div className="card" style={{ overflow: 'hidden' }}>
           <table className="data-table">
@@ -70,12 +87,26 @@ export default function ArrivalsPage() {
                     </span>
                   </td>
                   <td>
-                    {a.status === 'pending' && (
-                      <button onClick={() => handleArrive(a.id, a.item_id, a.quantity)}
-                        style={{ fontSize: '0.75rem', background: 'var(--ok-bg)', color: 'var(--ok)', border: '1px solid rgba(52,211,153,0.3)', borderRadius: '6px', padding: '4px 10px', cursor: 'pointer' }}>
-                        入荷処理
+                    <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                      {a.status === 'pending' && (
+                        <>
+                          <button onClick={() => handleArrive(a.id, a.item_id, a.quantity)}
+                            style={{ fontSize: '0.75rem', background: 'var(--ok-bg)', color: 'var(--ok)', border: '1px solid rgba(52,211,153,0.3)', borderRadius: '6px', padding: '4px 10px', cursor: 'pointer' }}>
+                            入荷処理
+                          </button>
+                          <button onClick={() => setEditingArrival(a)} title="編集"
+                            style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-muted)' }}>
+                            <Pencil size={14} />
+                          </button>
+                        </>
+                      )}
+                      <button onClick={() => handleDelete(a)} title="削除"
+                        style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-muted)' }}
+                        onMouseEnter={e => e.currentTarget.style.color = 'var(--danger)'}
+                        onMouseLeave={e => e.currentTarget.style.color = 'var(--text-muted)'}>
+                        <Trash2 size={14} />
                       </button>
-                    )}
+                    </div>
                   </td>
                 </tr>
               ))}
@@ -84,6 +115,18 @@ export default function ArrivalsPage() {
               )}
             </tbody>
           </table>
+        </div>
+      )}
+      {editingArrival && (
+        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.6)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 100, backdropFilter: 'blur(4px)' }}
+          onClick={() => setEditingArrival(null)}>
+          <div onClick={e => e.stopPropagation()} style={{ width: '100%', maxWidth: '600px' }}>
+            <ArrivalForm 
+              initialData={editingArrival}
+              onSaved={() => { setEditingArrival(null); fetchArrivals() }} 
+              onCancel={() => setEditingArrival(null)} 
+            />
+          </div>
         </div>
       )}
     </div>

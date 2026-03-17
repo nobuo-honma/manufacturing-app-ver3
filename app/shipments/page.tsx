@@ -118,6 +118,29 @@ export default function ShipmentsPage() {
     fetchShipments(); setSaving(false)
   }
 
+  const handleDeleteShipment = async (s: any) => {
+    if (!confirm(`出荷履歴 ${s.id} を削除しますか？`)) return
+    
+    // 在庫を戻す
+    const { data: stock } = await supabase.from('product_stocks')
+      .select('qty_cs,qty_piece').eq('lot_code', s.lot_code).single()
+    if (stock) {
+      await supabase.from('product_stocks').update({
+        qty_cs: stock.qty_cs + s.qty_cs,
+        qty_piece: stock.qty_piece + s.qty_piece,
+        updated_at: new Date().toISOString(),
+      }).eq('lot_code', s.lot_code)
+    }
+
+    const { error } = await supabase.from('shipments').delete().eq('id', s.id)
+    if (error) {
+      alert(error.message)
+      return
+    }
+    fetchShipments()
+    fetchOrders() // サマリ（済・残）を更新するため
+  }
+
   return (
     <div style={{ display:'flex', flexDirection:'column', gap:'20px' }}>
       <h1 className="page-title">出荷管理</h1>
@@ -279,7 +302,7 @@ export default function ShipmentsPage() {
               </div>
               <table className="data-table">
                 <thead>
-                  <tr>{['出荷日','Lot番号','c/s','p','ステータス'].map(h => <th key={h}>{h}</th>)}</tr>
+                  <tr>{['出荷日','Lot番号','c/s','p','ステータス',''].map(h => <th key={h}>{h}</th>)}</tr>
                 </thead>
                 <tbody>
                   {shipments.filter(s => s.order_id === selectedOrder.id).length === 0 ? (
@@ -295,6 +318,14 @@ export default function ShipmentsPage() {
                       <td><span className={`badge ${s.status === 'shipped' ? 'badge-ok' : 'badge-warn'}`}>
                         {SHIPMENT_STATUS_LABEL[s.status]}
                       </span></td>
+                      <td>
+                        <button onClick={() => handleDeleteShipment(s)} title="削除"
+                          style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-muted)' }}
+                          onMouseEnter={e => e.currentTarget.style.color = 'var(--danger)'}
+                          onMouseLeave={e => e.currentTarget.style.color = 'var(--text-muted)'}>
+                          <Trash2 size={14} />
+                        </button>
+                      </td>
                     </tr>
                   ))}
                 </tbody>

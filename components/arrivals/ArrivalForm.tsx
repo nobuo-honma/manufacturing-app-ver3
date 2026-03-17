@@ -1,14 +1,23 @@
 'use client'
 import { useState, useEffect } from 'react'
 import { supabase } from '@/lib/supabase'
-import { Item } from '@/lib/types'
+import { Arrival, Item } from '@/lib/types'
 import { generateArrivalId } from '@/lib/utils'
 
-export default function ArrivalForm({ onSaved, onCancel }: { onSaved: () => void; onCancel?: () => void }) {
+interface Props {
+  initialData?: Arrival
+  onSaved: () => void
+  onCancel?: () => void
+}
+
+export default function ArrivalForm({ initialData, onSaved, onCancel }: Props) {
   const [items, setItems]   = useState<Item[]>([])
   const [search, setSearch] = useState('')
   const [form, setForm]     = useState({
-    item_id: '', expected_date: '', quantity: '', notes: '',
+    item_id: initialData?.item_id || '', 
+    expected_date: initialData?.expected_date?.slice(0, 10) || '', 
+    quantity: initialData?.quantity ? String(initialData.quantity) : '', 
+    notes: initialData?.notes || '',
   })
   const [saving, setSaving] = useState(false)
 
@@ -25,30 +34,54 @@ export default function ArrivalForm({ onSaved, onCancel }: { onSaved: () => void
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setSaving(true)
-    const { data: latest } = await supabase
-      .from('arrivals').select('id')
-      .like('id', `INC-${new Date().toISOString().slice(0,10).replace(/-/g,'')}-%%`)
-      .order('id', { ascending: false }).limit(1)
-    const seq = latest?.length ? parseInt(latest[0].id.slice(-3)) + 1 : 1
-    await supabase.from('arrivals').insert({
-      id:            generateArrivalId(new Date(), seq),
-      item_id:       form.item_id,
-      order_date:    new Date().toISOString(),
-      expected_date: form.expected_date,
-      quantity:      Number(form.quantity),
-      unit:          selected?.unit ?? '',
-      status:        'pending',
-      notes:         form.notes || null,
-    })
+
+    let error;
+    if (initialData) {
+      const { error: err } = await supabase.from('arrivals').update({
+        item_id:       form.item_id,
+        expected_date: form.expected_date,
+        quantity:      Number(form.quantity),
+        unit:          selected?.unit ?? '',
+        notes:         form.notes || null,
+      }).eq('id', initialData.id)
+      error = err;
+    } else {
+      const { data: latest } = await supabase
+        .from('arrivals').select('id')
+        .like('id', `INC-${new Date().toISOString().slice(0,10).replace(/-/g,'')}-%%`)
+        .order('id', { ascending: false }).limit(1)
+      const seq = latest?.length ? parseInt(latest[0].id.slice(-3)) + 1 : 1
+      const { error: err } = await supabase.from('arrivals').insert({
+        id:            generateArrivalId(new Date(), seq),
+        item_id:       form.item_id,
+        order_date:    new Date().toISOString(),
+        expected_date: form.expected_date,
+        quantity:      Number(form.quantity),
+        unit:          selected?.unit ?? '',
+        status:        'pending',
+        notes:         form.notes || null,
+      })
+      error = err;
+    }
+
     setSaving(false)
-    setForm({ item_id:'', expected_date:'', quantity:'', notes:'' })
-    setSearch('')
-    onSaved()
+    if (!error) {
+      if (!initialData) {
+        setForm({ item_id:'', expected_date:'', quantity:'', notes:'' })
+        setSearch('')
+      }
+      onSaved()
+    } else {
+      console.error('Failed to save arrival:', error)
+      alert(`保存に失敗しました: ${error.message}`)
+    }
   }
 
   return (
     <div className="form-card" style={{ maxWidth: '560px' }}>
-      <div className="form-card-header">入荷予定の登録</div>
+      <div className="form-card-header">
+        {initialData ? '入荷予定の編集' : '入荷予定の登録'}
+      </div>
 
       <form onSubmit={handleSubmit}>
         <div className="form-group">

@@ -10,6 +10,36 @@ export default function BomMaster() {
   const [showForm, setShowForm] = useState(false)
   const [form, setForm] = useState({ product_id: '', item_id: '', usage_rate: '', unit: '', basis_type: 'production_qty' })
 
+  function EditableCell({ value, onSave, type = 'text', options }: { value: string | number; onSave: (v: string) => void; type?: 'text'|'number'|'select'; options?: {label:string; value:string}[] }) {
+    const [editing, setEditing] = useState(false)
+    const [val, setVal] = useState(String(value))
+    if (editing) {
+      if (type === 'select' && options) {
+        return (
+          <select className="input" style={{ padding: '3px 6px', fontSize: '0.75rem', minWidth: '100px' }}
+            value={val} onChange={e => setVal(e.target.value)} autoFocus
+            onBlur={() => { onSave(val); setEditing(false) }}
+            onKeyDown={e => { if (e.key === 'Enter') { onSave(val); setEditing(false) } if (e.key === 'Escape') setEditing(false) }}>
+            {options.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
+          </select>
+        )
+      }
+      return (
+        <input type={type} className="input" style={{ padding: '3px 6px', minWidth: '60px', fontSize: '0.75rem' }}
+          value={val} onChange={e => setVal(e.target.value)}
+          onBlur={() => { onSave(val); setEditing(false) }}
+          onKeyDown={e => { if (e.key === 'Enter') { onSave(val); setEditing(false) } if (e.key === 'Escape') setEditing(false) }}
+          autoFocus />
+      )
+    }
+    const displayValue = type === 'select' && options ? options.find(o => o.value === String(value))?.label : value
+    return <span onClick={() => { setVal(String(value)); setEditing(true) }}
+      style={{ cursor: 'pointer', padding: '2px 4px', borderRadius: '4px', display: 'block' }}
+      onMouseEnter={e => (e.currentTarget as HTMLElement).style.background = 'var(--surface-3)'}
+      onMouseLeave={e => (e.currentTarget as HTMLElement).style.background = 'transparent'}
+    >{displayValue || <span style={{ color: 'var(--text-muted)' }}>-</span>}</span>
+  }
+
   const fetchAll = async () => {
     const [{ data: b }, { data: p }, { data: i }] = await Promise.all([
       supabase.from('bom').select('*, items(*)').order('product_id'),
@@ -25,6 +55,9 @@ export default function BomMaster() {
     const { error } = await supabase.from('bom').insert({ ...form, usage_rate: Number(form.usage_rate) })
     if (error) { alert(error.message); return }
     setShowForm(false); setForm({ product_id: '', item_id: '', usage_rate: '', unit: '', basis_type: 'production_qty' }); fetchAll()
+  }
+  const handleUpdate = async (id: string, field: string, value: string) => {
+    await supabase.from('bom').update({ [field]: field === 'usage_rate' ? Number(value) : value }).eq('id', id); fetchAll()
   }
   const handleDelete = async (id: string) => {
     if (!confirm('削除しますか？')) return
@@ -100,9 +133,16 @@ export default function BomMaster() {
                 <td style={{ fontFamily: 'DM Mono', fontSize: '0.6875rem', color: 'var(--text-muted)' }}>{row.item_id}</td>
                 <td>{row.items?.name}</td>
                 <td><span className={`badge ${row.items?.item_type === 'raw_material' ? 'badge-blue' : 'badge-gray'}`}>{row.items?.item_type === 'raw_material' ? '原材料' : '資材'}</span></td>
-                <td style={{ fontWeight: 600 }}>{row.usage_rate}</td>
-                <td style={{ color: 'var(--text-muted)' }}>{row.unit}</td>
-                <td><span className={`badge ${row.basis_type === 'production_qty' ? 'badge-blue' : 'badge-warn'}`}>{row.basis_type === 'production_qty' ? '製造量' : '受注数'}</span></td>
+                <td style={{ fontWeight: 600 }}>
+                  <EditableCell type="number" value={row.usage_rate} onSave={v => handleUpdate(row.id, 'usage_rate', v)} />
+                </td>
+                <td style={{ color: 'var(--text-muted)' }}>
+                  <EditableCell value={row.unit} onSave={v => handleUpdate(row.id, 'unit', v)} />
+                </td>
+                <td>
+                  <EditableCell type="select" options={[{label:'製造量',value:'production_qty'}, {label:'受注数',value:'order_qty'}]} 
+                    value={row.basis_type} onSave={v => handleUpdate(row.id, 'basis_type', v)} />
+                </td>
                 <td><button onClick={() => handleDelete(row.id)} style={{ fontSize: '0.75rem', color: 'var(--danger)', background: 'none', border: 'none', cursor: 'pointer' }}>削除</button></td>
               </tr>
             ))}
