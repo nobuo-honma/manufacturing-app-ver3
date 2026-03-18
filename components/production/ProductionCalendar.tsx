@@ -3,6 +3,8 @@ import { useEffect, useState } from 'react'
 import { supabase } from '@/lib/supabase'
 import { Printer, ChevronLeft, ChevronRight, X, Trash2, Pencil, Save, ChevronLeft as Back } from 'lucide-react'
 import { calcProductionCounts, generateLotCode, calcExpiryDate } from '@/lib/utils'
+import ProductionResultForm from './ProductionResultForm'
+import { CheckCircle, Play } from 'lucide-react'
 
 const DAY_NAMES   = ['日','月','火','水','木','金','土']
 const MONTH_NAMES = ['1月','2月','3月','4月','5月','6月','7月','8月','9月','10月','11月','12月']
@@ -20,6 +22,7 @@ export default function ProductionCalendar() {
   const [selectedResult, setSelectedResult] = useState<any | null>(null)
   const [isEditing, setIsEditing] = useState(false)
   const [editForm, setEditForm] = useState({ date: '', kg: 0 })
+  const [isRegisteringResult, setIsRegisteringResult] = useState(false)
 
   const fetchPlans = () => {
     supabase.from('production_plans')
@@ -109,6 +112,16 @@ export default function ProductionCalendar() {
     await supabase.from('production_results').delete().eq('id', selectedResult.id)
     await supabase.from('production_plans').update({ status: 'planned' }).eq('id', selectedEvent.id)
 
+    setSelectedEvent(null)
+    fetchPlans()
+  }
+
+  const handleStatusUpdate = async (id: string, status: string) => {
+    const { error } = await supabase.from('production_plans').update({ status }).eq('id', id)
+    if (error) {
+      alert(error.message)
+      return
+    }
     setSelectedEvent(null)
     fetchPlans()
   }
@@ -226,23 +239,34 @@ export default function ProductionCalendar() {
         const c = STATUS_COLOR[selectedEvent.status] || STATUS_COLOR.planned
         return (
           <div style={{ position:'fixed', inset:0, zIndex:100, background:'rgba(0,0,0,0.6)', backdropFilter:'blur(4px)', display:'flex', alignItems:'center', justifyContent:'center' }}
-            onClick={() => { setSelectedEvent(null); setIsEditing(false) }}>
+            onClick={() => { setSelectedEvent(null); setIsEditing(false); setIsRegisteringResult(false) }}>
           <div className="card" style={{ width:'95%', maxWidth:'450px', padding:'24px', maxHeight:'90vh', overflowY:'auto' }} onClick={e => e.stopPropagation()}>
               <div style={{ display:'flex', justifyContent:'space-between', alignItems:'flex-start', marginBottom:'16px' }}>
                 <div>
                   <h3 style={{ fontSize:'1.125rem', fontWeight:700, color:'var(--text-1)' }}>
-                    {selectedEvent.products?.name} <span style={{ fontSize:'0.875rem', color:'var(--text-2)' }}>{selectedEvent.products?.variant_name}</span>
+                    {isRegisteringResult ? '製造実績の登録' : (selectedEvent.products?.name)} {!isRegisteringResult && <span style={{ fontSize:'0.875rem', color:'var(--text-2)' }}>{selectedEvent.products?.variant_name}</span>}
                   </h3>
-                  <p style={{ fontSize:'0.75rem', color:'var(--text-3)', marginTop:'4px' }}>
-                    {selectedEvent.orders?.customers?.name}
-                  </p>
+                  {!isRegisteringResult && (
+                    <p style={{ fontSize:'0.75rem', color:'var(--text-3)', marginTop:'4px' }}>
+                      {selectedEvent.orders?.customers?.name}
+                    </p>
+                  )}
                 </div>
-                <button onClick={() => { setSelectedEvent(null); setIsEditing(false) }} style={{ background:'none', border:'none', color:'var(--text-3)', cursor:'pointer' }}>
+                <button onClick={() => { setSelectedEvent(null); setIsEditing(false); setIsRegisteringResult(false) }} style={{ background:'none', border:'none', color:'var(--text-3)', cursor:'pointer' }}>
                   <X size={20} />
                 </button>
               </div>
 
-              {!isEditing ? (
+              {isRegisteringResult ? (
+                <ProductionResultForm 
+                  plan={selectedEvent} 
+                  onSaved={() => {
+                    setIsRegisteringResult(false)
+                    setSelectedEvent(null)
+                    fetchPlans()
+                  }} 
+                />
+              ) : !isEditing ? (
                 <>
                   <div style={{ display:'grid', gap:'12px', background:'var(--surface-2)', padding:'16px', borderRadius:'8px', fontSize:'0.8125rem', marginBottom:'20px' }}>
                     <div style={{ display:'flex', justifyContent:'space-between' }}>
@@ -294,8 +318,24 @@ export default function ProductionCalendar() {
                           <Trash2 size={14} /> 削除
                         </button>
                         <button onClick={handleEditStart}
-                          className="btn-submit" style={{ display:'flex', alignItems:'center', gap:'6px' }}>
+                          className="btn-secondary" style={{ display:'flex', alignItems:'center', gap:'6px' }}>
                           <Pencil size={14} /> 編集
+                        </button>
+                        <button onClick={() => handleStatusUpdate(selectedEvent.id, 'in_progress')}
+                          className="btn-secondary" style={{ color:'var(--warn)', borderColor:'rgba(251,191,36,0.3)', display:'flex', alignItems:'center', gap:'6px' }}>
+                          <Play size={14} /> 製造開始
+                        </button>
+                        <button onClick={() => setIsRegisteringResult(true)}
+                          className="btn-submit" style={{ display:'flex', alignItems:'center', gap:'6px' }}>
+                          <CheckCircle size={14} /> 完了
+                        </button>
+                      </>
+                    )}
+                    {selectedEvent.status === 'in_progress' && (
+                      <>
+                        <button onClick={() => setIsRegisteringResult(true)}
+                          className="btn-submit" style={{ display:'flex', alignItems:'center', gap:'6px' }}>
+                          <CheckCircle size={14} /> 製造完了
                         </button>
                       </>
                     )}

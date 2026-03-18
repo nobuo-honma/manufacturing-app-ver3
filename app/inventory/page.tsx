@@ -1,18 +1,18 @@
 'use client'
 import { useState } from 'react'
 import { useInventory } from '@/hooks/useInventory'
-import ItemStockTable    from '@/components/inventory/ItemStockTable'
+import ItemStockTable from '@/components/inventory/ItemStockTable'
 import ProductStockTable from '@/components/inventory/ProductStockTable'
-import StocktakingForm   from '@/components/inventory/StocktakingForm'
+import StocktakingForm from '@/components/inventory/StocktakingForm'
 import BulkStocktakingForm from '../../components/inventory/BulkStocktakingForm'
-import StockForecast     from '@/components/inventory/StockForecast'
+import StockForecast from '@/components/inventory/StockForecast'
 import { ItemStock } from '@/lib/types'
 import { Search } from 'lucide-react'
 
 type TabType = 'raw_material' | 'material' | 'product' | 'forecast'
 
 export default function InventoryPage() {
-  const [tab, setTab]     = useState<TabType>('raw_material')
+  const [tab, setTab] = useState<TabType>('raw_material')
   const [search, setSearch] = useState('')
   const [stocktakingTarget, setStocktakingTarget] = useState<ItemStock | null>(null)
   const [isBulkMode, setIsBulkMode] = useState(false)
@@ -22,9 +22,9 @@ export default function InventoryPage() {
 
   const tabs: { key: TabType; label: string }[] = [
     { key: 'raw_material', label: '原材料' },
-    { key: 'material',     label: '資材' },
-    { key: 'product',      label: '製品' },
-    { key: 'forecast',     label: '在庫予測' },
+    { key: 'material', label: '資材' },
+    { key: 'product', label: '製品' },
+    { key: 'forecast', label: '在庫予測' },
   ]
 
   return (
@@ -62,7 +62,7 @@ export default function InventoryPage() {
       )}
 
       {isBulkMode && (
-        <BulkStocktakingForm 
+        <BulkStocktakingForm
           stocks={filteredItems.filter(s => !search || s.items?.name.includes(search) || s.item_id.includes(search))}
           onClose={() => setIsBulkMode(false)}
           onSaved={refetch}
