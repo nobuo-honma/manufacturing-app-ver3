@@ -1,0 +1,74 @@
+﻿
+> manufacturing-app@0.1.0 build
+> next build
+
+   笆ｲ Next.js 15.5.12
+   - Environments: .env.local
+
+   Creating an optimized production build ...
+node.exe : Failed to co
+mpile.
+発生場所 行:1 文字:1
++ & "C:\Program Files\n
+odejs/node.exe" "C:\Pro
+gram Files\nodejs/node_
+mo ...
++ ~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~
+~~
+    + CategoryInfo     
+         : NotSpecifi  
+  ed: (Failed to com   
+ pile.:String) [],     
+RemoteException
+    + FullyQualifiedEr 
+   rorId : NativeComm  
+  andError
+ 
+
+./components/orders/Ord
+erList.tsx
+Error:   [31mx[0m You
+'re importing a compone
+nt that needs `useState
+`. This React Hook only
+ works in a Client Comp
+onent. To fix, mark the
+ file (or its parent) w
+ith the `"use client"` 
+directive.
+  [31m|[0m
+  [31m|[0m  Learn mor
+e: https://nextjs.org/d
+ocs/app/api-reference/d
+irectives/use-client
+  [31m|[0m
+
+   ,-[[36;1;4mF:\manuf
+acturing-app\components
+\orders\OrderList.tsx[
+0m:1:1]
+ [2m1[0m | import { u
+seState } from 'react'
+   : [35;1m         ^^
+^^^^^^[0m
+ [2m2[0m | import Lin
+k from 'next/link'
+ [2m3[0m | import { s
+upabase } from '@/lib/s
+upabase'
+ [2m3[0m | import { u
+seOrders } from '@/hook
+s/useOrders'
+   `----
+
+Import trace for reques
+ted module:
+./components/orders/Ord
+erList.tsx
+./app/orders/page.tsx
+
+
+> Build failed because 
+of webpack errors
