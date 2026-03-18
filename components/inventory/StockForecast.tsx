@@ -89,7 +89,7 @@ export default function StockForecast() {
             if (b.basis_type === 'production_qty') {
               outgoing += plan.production_kg * b.usage_rate
             } else if (b.basis_type === 'order_qty') {
-              outgoing += plan.planned_units * b.usage_rate
+              outgoing += plan.planned_cs * b.usage_rate
             }
           })
         })
