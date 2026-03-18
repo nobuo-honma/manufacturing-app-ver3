@@ -179,6 +179,16 @@ export interface Announcement {
   published_at: string
 }
 
+// ===== 社内イベント =====
+export interface InternalEvent {
+  id: string
+  event_date: string
+  title: string
+  description?: string
+  color?: string
+  created_at?: string
+}
+
 // ===== BOMシミュレーション結果 =====
 export interface SimulationResult {
   item_id: string

@@ -4,7 +4,8 @@ import { supabase } from '@/lib/supabase'
 import { Printer, ChevronLeft, ChevronRight, X, Trash2, Pencil, Save, ChevronLeft as Back } from 'lucide-react'
 import { calcProductionCounts, generateLotCode, calcExpiryDate } from '@/lib/utils'
 import ProductionResultForm from './ProductionResultForm'
-import { CheckCircle, Play } from 'lucide-react'
+import { CheckCircle, Play, Calendar as CalendarIcon, Truck } from 'lucide-react'
+import { InternalEvent, Shipment, ProductionPlan } from '@/lib/types'
 
 const DAY_NAMES   = ['日','月','火','水','木','金','土']
 const MONTH_NAMES = ['1月','2月','3月','4月','5月','6月','7月','8月','9月','10月','11月','12月']
@@ -15,21 +16,32 @@ const STATUS_COLOR: Record<string, {bg:string; text:string; border:string; label
 }
 
 export default function ProductionCalendar() {
-  const [events, setEvents] = useState<any[]>([])
+  const [events, setEvents] = useState<ProductionPlan[]>([])
+  const [shipments, setShipments] = useState<Shipment[]>([])
+  const [internalEvents, setInternalEvents] = useState<InternalEvent[]>([])
   const [year, setYear]   = useState(new Date().getFullYear())
   const [month, setMonth] = useState(new Date().getMonth())
   const [selectedEvent, setSelectedEvent] = useState<any | null>(null)
+  const [selectedType, setSelectedType] = useState<'plan' | 'shipment' | 'internal' | null>(null)
   const [selectedResult, setSelectedResult] = useState<any | null>(null)
   const [isEditing, setIsEditing] = useState(false)
   const [editForm, setEditForm] = useState({ date: '', kg: 0 })
+  const [eventForm, setEventForm] = useState({ title: '', description: '', date: '' })
   const [isRegisteringResult, setIsRegisteringResult] = useState(false)
 
-  const fetchPlans = () => {
-    supabase.from('production_plans')
-      .select('*, products(*), orders(*, customers(*))')
-      .gte('production_date', `${year}-${String(month+1).padStart(2,'0')}-01`)
-      .lte('production_date', `${year}-${String(month+1).padStart(2,'0')}-31`)
-      .then(({ data }) => setEvents(data || []))
+  const fetchAllData = async () => {
+    const start = `${year}-${String(month+1).padStart(2,'0')}-01`
+    const end = `${year}-${String(month+1).padStart(2,'0')}-31`
+
+    const [plansRes, shipmentsRes, internalRes] = await Promise.all([
+      supabase.from('production_plans').select('*, products(*), orders(*, customers(*))').gte('production_date', start).lte('production_date', end),
+      supabase.from('shipments').select('*, orders(*, products(*), customers(*))').gte('ship_date', start).lte('ship_date', end),
+      supabase.from('internal_events').select('*').gte('event_date', start).lte('event_date', end)
+    ])
+
+    setEvents(plansRes.data || [])
+    setShipments(shipmentsRes.data || [])
+    setInternalEvents(internalRes.data || [])
   }
 
   const fetchResult = async (planId: string) => {
@@ -37,15 +49,38 @@ export default function ProductionCalendar() {
     setSelectedResult(data)
   }
 
+  const handleAddInternalEvent = async (day: number) => {
+    const d = `${year}-${String(month+1).padStart(2,'0')}-${String(day).padStart(2,'0')}`
+    const title = prompt('行事内容を入力してください')
+    if (!title) return
+    const { error } = await supabase.from('internal_events').insert({
+      event_date: d,
+      title: title
+    })
+    if (error) {
+      alert('エラー: ' + error.message)
+      return
+    }
+    fetchAllData()
+  }
+
+  const handleDeleteInternalEvent = async (id: string) => {
+    if (!confirm('この行事を削除しますか？')) return
+    await supabase.from('internal_events').delete().eq('id', id)
+    setSelectedEvent(null)
+    fetchAllData()
+  }
+
   useEffect(() => {
-    if (selectedEvent?.status === 'completed') {
+    if (selectedType === 'plan' && selectedEvent?.status === 'completed') {
       fetchResult(selectedEvent.id)
     } else {
       setSelectedResult(null)
     }
-  }, [selectedEvent])
+  }, [selectedEvent, selectedType])
+
   useEffect(() => {
-    fetchPlans()
+    fetchAllData()
   }, [year, month])
 
   const handleDelete = async (id: string, orderId: string) => {
@@ -57,7 +92,7 @@ export default function ProductionCalendar() {
       await supabase.from('orders').update({ status: 'received' }).eq('id', orderId)
     }
     setSelectedEvent(null)
-    fetchPlans()
+    fetchAllData()
   }
 
   const handleEditStart = () => {
@@ -90,7 +125,7 @@ export default function ProductionCalendar() {
     }
     setIsEditing(false)
     setSelectedEvent(null)
-    fetchPlans()
+    fetchAllData()
   }
 
   const handleDeleteResult = async () => {
@@ -113,7 +148,7 @@ export default function ProductionCalendar() {
     await supabase.from('production_plans').update({ status: 'planned' }).eq('id', selectedEvent.id)
 
     setSelectedEvent(null)
-    fetchPlans()
+    fetchAllData()
   }
 
   const handleStatusUpdate = async (id: string, status: string) => {
@@ -123,7 +158,7 @@ export default function ProductionCalendar() {
       return
     }
     setSelectedEvent(null)
-    fetchPlans()
+    fetchAllData()
   }
 
   const prev = () => month === 0 ? (setYear(y=>y-1), setMonth(11)) : setMonth(m=>m-1)
@@ -137,6 +172,14 @@ export default function ProductionCalendar() {
   const eventsForDay = (day: number) => {
     const d = `${year}-${String(month+1).padStart(2,'0')}-${String(day).padStart(2,'0')}`
     return events.filter(e => e.production_date?.slice(0,10) === d)
+  }
+  const shipmentsForDay = (day: number) => {
+    const d = `${year}-${String(month+1).padStart(2,'0')}-${String(day).padStart(2,'0')}`
+    return shipments.filter(s => s.ship_date?.slice(0,10) === d)
+  }
+  const internalEventsForDay = (day: number) => {
+    const d = `${year}-${String(month+1).padStart(2,'0')}-${String(day).padStart(2,'0')}`
+    return internalEvents.filter(e => e.event_date?.slice(0,10) === d)
   }
   const today = new Date()
 
@@ -181,14 +224,17 @@ export default function ProductionCalendar() {
               }}>
                 {day && (
                   <>
-                    <p style={{ fontSize:'0.75rem', fontWeight:isToday?700:400, marginBottom:'4px',
-                      color:isSun?'var(--danger)':isSat?'var(--accent)':isToday?'var(--accent)':'var(--text-3)' }}>
+                    <p onClick={() => handleAddInternalEvent(day)} style={{ 
+                      fontSize:'0.75rem', fontWeight:isToday?700:400, marginBottom:'4px',
+                      color:isSun?'var(--danger)':isSat?'var(--accent)':isToday?'var(--accent)':'var(--text-3)',
+                      cursor: 'pointer'
+                    }}>
                       {day}
                     </p>
                     {ev.map((e, i) => {
                       const c = STATUS_COLOR[e.status] ?? STATUS_COLOR.planned
                       return (
-                        <div key={i} onClick={() => setSelectedEvent(e)} style={{
+                        <div key={`plan-${i}`} onClick={(el) => { el.stopPropagation(); setSelectedEvent(e); setSelectedType('plan') }} style={{
                           fontSize: '0.625rem', padding: '4px 6px', borderRadius: '4px', marginBottom: '4px',
                           background: c.bg, color: c.text, border: `1px solid ${c.border}`,
                           cursor: 'pointer', display: 'flex', flexDirection: 'column', gap: '2px',
@@ -214,6 +260,36 @@ export default function ProductionCalendar() {
                         </div>
                       )
                     })}
+
+                    {shipmentsForDay(day).map((s, i) => (
+                      <div key={`ship-${i}`} onClick={(el) => { el.stopPropagation(); setSelectedEvent(s); setSelectedType('shipment') }} style={{
+                        fontSize: '0.625rem', padding: '4px 6px', borderRadius: '4px', marginBottom: '4px',
+                        background: 'rgba(139, 92, 246, 0.12)', color: '#a78bfa', border: '1px solid rgba(139, 92, 246, 0.25)',
+                        cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px'
+                      }}
+                        onMouseEnter={el => el.currentTarget.style.filter = 'brightness(1.2)'}
+                        onMouseLeave={el => el.currentTarget.style.filter = 'brightness(1)'}>
+                        <Truck size={10} />
+                        <span style={{ fontWeight: 700, overflow: 'hidden', whiteSpace: 'nowrap', textOverflow: 'ellipsis' }}>
+                          {s.orders?.customers?.name || '出荷予定'}
+                        </span>
+                      </div>
+                    ))}
+
+                    {internalEventsForDay(day).map((e, i) => (
+                      <div key={`int-${i}`} onClick={(el) => { el.stopPropagation(); setSelectedEvent(e); setSelectedType('internal') }} style={{
+                        fontSize: '0.625rem', padding: '4px 6px', borderRadius: '4px', marginBottom: '4px',
+                        background: 'rgba(255, 255, 255, 0.08)', color: 'var(--text-2)', border: '1px solid var(--border)',
+                        cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px'
+                      }}
+                        onMouseEnter={el => el.currentTarget.style.filter = 'brightness(1.2)'}
+                        onMouseLeave={el => el.currentTarget.style.filter = 'brightness(1)'}>
+                        <CalendarIcon size={10} />
+                        <span style={{ fontWeight: 600, overflow: 'hidden', whiteSpace: 'nowrap', textOverflow: 'ellipsis' }}>
+                          {e.title}
+                        </span>
+                      </div>
+                    ))}
                   </>
                 )}
               </div>
@@ -222,20 +298,107 @@ export default function ProductionCalendar() {
         </div>
       </div>
 
-      <div className="no-print" style={{ display:'flex', gap:'16px', marginTop:'10px', fontSize:'0.75rem', color:'var(--text-3)' }}>
+      <div className="no-print" style={{ display:'flex', gap:'16px', marginTop:'10px', fontSize:'0.75rem', color:'var(--text-3)', flexWrap: 'wrap' }}>
         {Object.entries({planned:'計画済', in_progress:'製造中', completed:'完了'}).map(([k,v]) => {
           const c = STATUS_COLOR[k]
           return (
             <span key={k} style={{ display:'flex', alignItems:'center', gap:'5px' }}>
-              <span style={{ width:'10px', height:'10px', borderRadius:'2px', background:c.bg, display:'inline-block' }}/>
+              <span style={{ width:'10px', height:'10px', borderRadius:'2px', background:c.bg, display:'inline-block', border: `1px solid ${c.border}` }}/>
               {v}
             </span>
           )
         })}
+        <span style={{ display:'flex', alignItems:'center', gap:'5px' }}>
+          <span style={{ width:'10px', height:'10px', borderRadius:'2px', background:'rgba(139, 92, 246, 0.12)', display:'inline-block', border: '1px solid rgba(139, 92, 246, 0.25)' }}/>
+          出荷
+        </span>
+        <span style={{ display:'flex', alignItems:'center', gap:'5px' }}>
+          <span style={{ width:'10px', height:'10px', borderRadius:'2px', background:'rgba(255, 255, 255, 0.08)', display:'inline-block', border: '1px solid var(--border)' }}/>
+          社内行事 (日付クリックで追加)
+        </span>
       </div>
 
       {/* 詳細モーダル */}
       {selectedEvent && (() => {
+        if (selectedType === 'shipment') {
+          return (
+            <div style={{ position:'fixed', inset:0, zIndex:100, background:'rgba(0,0,0,0.6)', backdropFilter:'blur(4px)', display:'flex', alignItems:'center', justifyContent:'center' }}
+              onClick={() => setSelectedEvent(null)}>
+              <div className="card" style={{ width:'95%', maxWidth:'450px', padding:'24px' }} onClick={e => e.stopPropagation()}>
+                <div style={{ display:'flex', justifyContent:'space-between', alignItems:'flex-start', marginBottom:'16px' }}>
+                  <div style={{ display:'flex', alignItems:'center', gap:'8px' }}>
+                    <Truck size={20} className="text-purple-400" />
+                    <h3 style={{ fontSize:'1.125rem', fontWeight:700, color:'var(--text-1)' }}>出荷予定詳細</h3>
+                  </div>
+                  <button onClick={() => setSelectedEvent(null)} style={{ background:'none', border:'none', color:'var(--text-3)', cursor:'pointer' }}>
+                    <X size={20} />
+                  </button>
+                </div>
+                <div style={{ display:'grid', gap:'12px', background:'var(--surface-2)', padding:'16px', borderRadius:'8px', fontSize:'0.8125rem', marginBottom:'20px' }}>
+                  <div style={{ display:'flex', justifyContent:'space-between' }}>
+                    <span style={{ color:'var(--text-3)' }}>顧客名</span>
+                    <span style={{ fontWeight:600 }}>{selectedEvent.orders?.customers?.name}</span>
+                  </div>
+                  <div style={{ display:'flex', justifyContent:'space-between' }}>
+                    <span style={{ color:'var(--text-3)' }}>製品名</span>
+                    <span>{selectedEvent.orders?.products?.variant_name || selectedEvent.orders?.products?.name}</span>
+                  </div>
+                  <div style={{ display:'flex', justifyContent:'space-between' }}>
+                    <span style={{ color:'var(--text-3)' }}>出荷日</span>
+                    <span>{new Date(selectedEvent.ship_date).toLocaleDateString('ja-JP')}</span>
+                  </div>
+                  <div style={{ display:'flex', justifyContent:'space-between' }}>
+                    <span style={{ color:'var(--text-3)' }}>数量</span>
+                    <span style={{ fontWeight:600 }}>{selectedEvent.qty_cs} c/s ({selectedEvent.qty_piece} p)</span>
+                  </div>
+                  <div style={{ display:'flex', justifyContent:'space-between' }}>
+                    <span style={{ color:'var(--text-3)' }}>ステータス</span>
+                    <span>{selectedEvent.status}</span>
+                  </div>
+                </div>
+                <div style={{ display:'flex', justifyContent:'flex-end' }}>
+                  <button onClick={() => setSelectedEvent(null)} className="btn-secondary">閉じる</button>
+                </div>
+              </div>
+            </div>
+          )
+        }
+
+        if (selectedType === 'internal') {
+          return (
+            <div style={{ position:'fixed', inset:0, zIndex:100, background:'rgba(0,0,0,0.6)', backdropFilter:'blur(4px)', display:'flex', alignItems:'center', justifyContent:'center' }}
+              onClick={() => setSelectedEvent(null)}>
+              <div className="card" style={{ width:'95%', maxWidth:'450px', padding:'24px' }} onClick={e => e.stopPropagation()}>
+                <div style={{ display:'flex', justifyContent:'space-between', alignItems:'flex-start', marginBottom:'16px' }}>
+                  <div style={{ display:'flex', alignItems:'center', gap:'8px' }}>
+                    <CalendarIcon size={20} style={{ color:'var(--text-muted)' }} />
+                    <h3 style={{ fontSize:'1.125rem', fontWeight:700, color:'var(--text-1)' }}>社内行事詳細</h3>
+                  </div>
+                  <button onClick={() => setSelectedEvent(null)} style={{ background:'none', border:'none', color:'var(--text-3)', cursor:'pointer' }}>
+                    <X size={20} />
+                  </button>
+                </div>
+                <div style={{ display:'grid', gap:'12px', background:'var(--surface-2)', padding:'16px', borderRadius:'8px', fontSize:'0.8125rem', marginBottom:'20px' }}>
+                  <div style={{ display:'flex', justifyContent:'space-between' }}>
+                    <span style={{ color:'var(--text-3)' }}>日付</span>
+                    <span>{new Date(selectedEvent.event_date).toLocaleDateString('ja-JP')}</span>
+                  </div>
+                  <div style={{ display:'flex', flexDirection:'column', gap:'4px' }}>
+                    <span style={{ color:'var(--text-3)' }}>行事内容</span>
+                    <span style={{ fontWeight:600, fontSize:'1rem' }}>{selectedEvent.title}</span>
+                  </div>
+                </div>
+                <div style={{ display:'flex', gap:'12px', justifyContent:'flex-end' }}>
+                  <button onClick={() => handleDeleteInternalEvent(selectedEvent.id)} className="btn-secondary" style={{ color:'var(--danger)', borderColor:'rgba(248,113,113,0.3)' }}>
+                    削除
+                  </button>
+                  <button onClick={() => setSelectedEvent(null)} className="btn-secondary">閉じる</button>
+                </div>
+              </div>
+            </div>
+          )
+        }
+
         const c = STATUS_COLOR[selectedEvent.status] || STATUS_COLOR.planned
         return (
           <div style={{ position:'fixed', inset:0, zIndex:100, background:'rgba(0,0,0,0.6)', backdropFilter:'blur(4px)', display:'flex', alignItems:'center', justifyContent:'center' }}
@@ -263,7 +426,7 @@ export default function ProductionCalendar() {
                   onSaved={() => {
                     setIsRegisteringResult(false)
                     setSelectedEvent(null)
-                    fetchPlans()
+                    fetchAllData()
                   }} 
                 />
               ) : !isEditing ? (
