@@ -126,7 +126,7 @@ export default function ProductionPlanForm({ order, existingCs = 0, comboSeqStar
             )}
           </div>
 
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: '14px', width: '100%' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(100px, 1fr))', gap: '14px', width: '100%' }}>
             <div className="form-group" style={{ marginBottom: 0, minWidth: 0 }}>
               <label className="label" style={{ display: 'block', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
                 製造予定日
