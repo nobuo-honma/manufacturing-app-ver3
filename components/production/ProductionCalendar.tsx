@@ -172,18 +172,32 @@ export default function ProductionCalendar() {
                       color:isSun?'var(--danger)':isSat?'var(--accent)':isToday?'var(--accent)':'var(--text-3)' }}>
                       {day}
                     </p>
-                    {ev.map((e,i) => {
+                    {ev.map((e, i) => {
                       const c = STATUS_COLOR[e.status] ?? STATUS_COLOR.planned
                       return (
                         <div key={i} onClick={() => setSelectedEvent(e)} style={{
-                          fontSize:'0.6rem', padding:'2px 5px', borderRadius:'4px', marginBottom:'4px',
-                          background:c.bg, color:c.text, border:`1px solid ${c.border}`,
-                          overflow:'hidden', whiteSpace:'nowrap', textOverflow:'ellipsis', cursor:'pointer',
+                          fontSize: '0.625rem', padding: '4px 6px', borderRadius: '4px', marginBottom: '4px',
+                          background: c.bg, color: c.text, border: `1px solid ${c.border}`,
+                          cursor: 'pointer', display: 'flex', flexDirection: 'column', gap: '2px',
+                          lineHeight: '1.2'
                         }}
-                        onMouseEnter={el => el.currentTarget.style.filter = 'brightness(1.2)'}
-                        onMouseLeave={el => el.currentTarget.style.filter = 'brightness(1)'}>
-                          {e.products?.variant_name} {e.production_kg}kg
-                          {e.lot_code && <span style={{ opacity:0.7, marginLeft:'3px' }}>{e.lot_code}</span>}
+                          onMouseEnter={el => el.currentTarget.style.filter = 'brightness(1.2)'}
+                          onMouseLeave={el => el.currentTarget.style.filter = 'brightness(1)'}>
+                          <div style={{ fontWeight: 700, overflow: 'hidden', whiteSpace: 'nowrap', textOverflow: 'ellipsis' }}>
+                            {e.products?.variant_name || e.products?.name}
+                          </div>
+                          <div style={{ opacity: 0.9 }}>
+                            {e.production_kg}kg / {e.planned_cs}cs
+                          </div>
+                          {e.notes && (
+                            <div style={{ 
+                              opacity: 0.7, fontSize: '0.5625rem', fontStyle: 'italic',
+                              overflow: 'hidden', whiteSpace: 'nowrap', textOverflow: 'ellipsis',
+                              borderTop: '0.5px solid currentColor', paddingTop: '1px', marginTop: '1px'
+                            }}>
+                              {e.notes}
+                            </div>
+                          )}
                         </div>
                       )
                     })}
