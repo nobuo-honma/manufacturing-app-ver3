@@ -3,6 +3,7 @@ import { useState } from 'react'
 import { supabase } from '@/lib/supabase'
 import { ProductionPlan } from '@/lib/types'
 import { CheckCircle } from 'lucide-react'
+import { subtractInventoryForPlan } from '@/lib/inventoryUtils'
 
 interface Props { plan: ProductionPlan; onSaved: () => void }
 
@@ -16,6 +17,19 @@ export default function ProductionResultForm({ plan, onSaved }: Props) {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setLoading(true)
+
+    // もし計画が「未着手(planned)」なら、在庫を一度減算する
+    if (plan.status === 'planned') {
+      try {
+        await subtractInventoryForPlan(plan)
+      } catch (err) {
+        console.error('Inventory subtraction failed:', err)
+        alert('在庫の減算に失敗しました。')
+        setLoading(false)
+        return
+      }
+    }
+
     await supabase.from('production_results').insert({
       plan_id: plan.id, lot_code: plan.lot_code ?? '',
       actual_units: form.actual_units, actual_cs: form.actual_cs,

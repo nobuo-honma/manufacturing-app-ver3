@@ -6,6 +6,7 @@ import { calcProductionCounts, generateLotCode, calcExpiryDate } from '@/lib/uti
 import ProductionResultForm from './ProductionResultForm'
 import { CheckCircle, Play, Calendar as CalendarIcon, Truck } from 'lucide-react'
 import { InternalEvent, Shipment, ProductionPlan } from '@/lib/types'
+import { subtractInventoryForPlan } from '@/lib/inventoryUtils'
 
 const DAY_NAMES   = ['日','月','火','水','木','金','土']
 const MONTH_NAMES = ['1月','2月','3月','4月','5月','6月','7月','8月','9月','10月','11月','12月']
@@ -151,7 +152,18 @@ export default function ProductionCalendar() {
     fetchAllData()
   }
 
-  const handleStatusUpdate = async (id: string, status: string) => {
+  const handleStatusUpdate = async (id: string, status: string, plan?: ProductionPlan) => {
+    // 製造開始（in_progress）への変更時に在庫を減算
+    if (status === 'in_progress' && plan) {
+      try {
+        await subtractInventoryForPlan(plan)
+      } catch (err) {
+        console.error('Inventory subtraction failed:', err)
+        alert('在庫の減算に失敗しました。')
+        return
+      }
+    }
+
     const { error } = await supabase.from('production_plans').update({ status }).eq('id', id)
     if (error) {
       alert(error.message)
@@ -484,7 +496,7 @@ export default function ProductionCalendar() {
                           className="btn-secondary" style={{ display:'flex', alignItems:'center', gap:'6px' }}>
                           <Pencil size={14} /> 編集
                         </button>
-                        <button onClick={() => handleStatusUpdate(selectedEvent.id, 'in_progress')}
+                        <button onClick={() => handleStatusUpdate(selectedEvent.id, 'in_progress', selectedEvent)}
                           className="btn-secondary" style={{ color:'var(--warn)', borderColor:'rgba(251,191,36,0.3)', display:'flex', alignItems:'center', gap:'6px' }}>
                           <Play size={14} /> 製造開始
                         </button>
