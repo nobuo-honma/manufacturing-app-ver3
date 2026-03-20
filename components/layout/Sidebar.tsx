@@ -3,7 +3,7 @@ import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import {
   LayoutDashboard, ShoppingCart, Factory,
-  Package, Truck, Ship, Settings, BookOpen,
+  Package, Truck, Ship, Settings, BookOpen, FileText,
 } from 'lucide-react'
 
 const NAV = [
@@ -12,6 +12,7 @@ const NAV = [
   { href: '/production', label: '製造管理',       icon: Factory },
   { href: '/inventory',  label: '在庫管理',       icon: Package },
   { href: '/arrivals',   label: '入荷管理',       icon: Truck },
+  { href: '/orders/purchase', label: '発注書作成',   icon: FileText },
   { href: '/shipments',  label: '出荷管理',       icon: Ship },
   { href: '/masters',    label: 'マスタ管理',     icon: Settings },
   { href: '/manual',     label: '操作マニュアル', icon: BookOpen },

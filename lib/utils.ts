@@ -121,3 +121,15 @@ export function fmtDate(d: string | Date): string {
 export function fmtDateTime(d: string | Date): string {
   return new Date(d).toLocaleString('ja-JP', { year:'numeric', month:'2-digit', day:'2-digit', hour:'2-digit', minute:'2-digit' })
 }
+
+/** 2026 -> 令和8年3月20日 (金) */
+export function toJapaneseEraDate(date: Date | string): string {
+  const d = new Date(date)
+  const year = d.getFullYear()
+  const eraYear = year - 2018
+  const month = d.getMonth() + 1
+  const day = d.getDate()
+  const dayOfWeek = ['日', '月', '火', '水', '木', '金', '土'][d.getDay()]
+  
+  return `令和${eraYear}年${month}月${day}日 (${dayOfWeek})`
+}

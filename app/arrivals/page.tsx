@@ -2,7 +2,7 @@
 import { useEffect, useState } from 'react'
 import { supabase } from '@/lib/supabase'
 import { Arrival } from '@/lib/types'
-import { generateArrivalId, ARRIVAL_STATUS_LABEL } from '@/lib/utils'
+import { generateArrivalId, ARRIVAL_STATUS_LABEL, toJapaneseEraDate } from '@/lib/utils'
 import ArrivalCalendar from '@/components/arrivals/ArrivalCalendar'
 import ArrivalForm     from '@/components/arrivals/ArrivalForm'
 import { Plus, Pencil, Trash2, FileText, Printer, X, Check } from 'lucide-react'
@@ -60,14 +60,14 @@ export default function ArrivalsPage() {
 
     const po: PurchaseOrder = {
       supplierName: supplier,
-      orderDate: new Date().toLocaleDateString('ja-JP'),
+      orderDate: toJapaneseEraDate(new Date()),
       sender: DEFAULT_SENDER,
       items: selectedArrivals.map(a => ({
         code: a.item_id,
-        manufacturer: supplier,
+        manufacturer: ITEM_SUPPLIER_MAP[a.item_id] || '',
         name: a.items?.name || '',
-        spec: String(a.items?.unit_size || '') + (a.items?.unit || ''),
-        unit: a.unit,
+        spec: a.items ? `${a.items.unit_size}${a.items.unit}` : '',
+        unit: '1ケース',
         quantity: a.quantity
       }))
     }
