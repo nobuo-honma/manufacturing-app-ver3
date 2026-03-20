@@ -201,3 +201,30 @@ export interface SimulationResult {
   diff: number
   status: '充足' | '注意' | '不足'
 }
+
+// ===== 発注書（帳票用） =====
+export interface SenderInfo {
+  organization: string
+  facility: string
+  tel: string
+  fax: string
+  manager: string
+}
+
+export interface PurchaseOrderItem {
+  code: string
+  manufacturer: string
+  name: string
+  spec: string
+  unit: string
+  quantity?: number
+}
+
+export interface PurchaseOrder {
+  id?: string
+  supplierName: string
+  orderDate: string
+  deliveryDate?: string
+  sender: SenderInfo
+  items: PurchaseOrderItem[]
+}
