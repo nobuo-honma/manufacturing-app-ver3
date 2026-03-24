@@ -1,6 +1,6 @@
 import type { Metadata } from 'next'
 import './globals.css'
-import Sidebar from '@/components/layout/Sidebar'
+import ClientLayout from '@/components/layout/ClientLayout'
 
 export const metadata: Metadata = {
   title: '製造管理システム',
@@ -10,13 +10,8 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="ja" suppressHydrationWarning>
-      <body style={{ display: 'flex', minHeight: '100vh', background: 'var(--navy-950)' }}>
-        <Sidebar />
-        <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
-          <main style={{ flex: 1, overflowY: 'auto', padding: '28px 32px' }}>
-            {children}
-          </main>
-        </div>
+      <body>
+        <ClientLayout>{children}</ClientLayout>
       </body>
     </html>
   )
