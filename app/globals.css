@@ -370,7 +370,7 @@
 
   .print-only th, 
   .print-only td {
-    border: 1px solid black !important;
+    border: 1px solid black;
     visibility: visible !important;
   }
 

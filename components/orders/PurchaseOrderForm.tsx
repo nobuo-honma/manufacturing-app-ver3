@@ -119,7 +119,7 @@ export default function PurchaseOrderForm() {
               <X size={18} /> 閉じる
             </button>
           </div>
-          <div className="bg-white rounded p-4 scale-90 origin-top print-only">
+          <div className="bg-white rounded p-4 scale-90 origin-top print-only" key={JSON.stringify(poData)}>
             <OrderTemplate data={poData} />
           </div>
         </div>

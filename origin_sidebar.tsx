@@ -6,12 +6,10 @@ import {
   Package, Truck, Ship, Settings, BookOpen, FileText,
 } from 'lucide-react'
 
-export const NAV = [
+const NAV = [
   { href: '/',           label: 'ダッシュボード', icon: LayoutDashboard },
   { href: '/orders',     label: '受注管理',       icon: ShoppingCart },
-  { href: '/orders/new', label: '受注登録',       icon: ShoppingCart },
   { href: '/production', label: '製造管理',       icon: Factory },
-  { href: '/production/calendar', label: '製造予定表',   icon: Factory },
   { href: '/inventory',  label: '在庫管理',       icon: Package },
   { href: '/arrivals',   label: '入荷管理',       icon: Truck },
   { href: '/orders/purchase', label: '発注書作成',   icon: FileText },
@@ -23,16 +21,15 @@ export const NAV = [
 export default function Sidebar() {
   const pathname = usePathname()
   return (
-    <aside 
-      className="flex flex-col sticky top-0"
-      style={{
-        width: '220px',
-        minHeight: '100vh',
-        background: 'var(--navy-900)',
-        borderRight: '1px solid var(--border)',
-        flexShrink: 0,
-      }}
-    >
+    <aside style={{
+      width: '220px',
+      minHeight: '100vh',
+      background: 'var(--navy-900)',
+      borderRight: '1px solid var(--border)',
+      display: 'flex',
+      flexDirection: 'column',
+      flexShrink: 0,
+    }}>
       {/* ロゴ */}
       <div style={{
         padding: '20px 18px',
